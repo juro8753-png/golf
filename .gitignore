@@ -1,0 +1,18 @@
+# dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# env files (절대 커밋 금지)
+.env
+.env.local
+.env*.local
+
+# data (로컬 mock DB)
+data/
+
+# misc
+.DS_Store
+*.pem
