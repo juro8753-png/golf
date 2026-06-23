@@ -29,10 +29,15 @@ export default function Home() {
     return () => document.removeEventListener('fullscreenchange', onChange)
   }, [])
 
-  const toggleFullscreen = () => {
+  const toggleFullscreen = async () => {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen()
+      await document.documentElement.requestFullscreen()
+      // 전체화면 진입 시 현재 방향 그대로 고정 (자동 회전 방지)
+      try {
+        await screen.orientation.lock(screen.orientation.type)
+      } catch {}
     } else {
+      try { screen.orientation.unlock() } catch {}
       document.exitFullscreen()
     }
   }
