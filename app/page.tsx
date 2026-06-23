@@ -34,10 +34,11 @@ export default function Home() {
       await document.documentElement.requestFullscreen()
       // 전체화면 진입 시 현재 방향 그대로 고정 (자동 회전 방지)
       try {
-        await screen.orientation.lock(screen.orientation.type)
+        const ori = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> }
+        await ori.lock?.(screen.orientation.type)
       } catch {}
     } else {
-      try { screen.orientation.unlock() } catch {}
+      try { (screen.orientation as ScreenOrientation & { unlock?: () => void }).unlock?.() } catch {}
       document.exitFullscreen()
     }
   }
