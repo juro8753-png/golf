@@ -7,6 +7,7 @@ import { Prize } from '@/types'
 export default function Home() {
   const [prizes, setPrizes] = useState<Prize[]>([])
   const [loading, setLoading] = useState(true)
+  const [isFullscreen, setIsFullscreen] = useState(false)
 
   const fetchPrizes = useCallback(async () => {
     try {
@@ -22,13 +23,31 @@ export default function Home() {
     fetchPrizes()
   }, [fetchPrizes])
 
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', onChange)
+    return () => document.removeEventListener('fullscreenchange', onChange)
+  }, [])
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen()
+    } else {
+      document.exitFullscreen()
+    }
+  }
+
   return (
     <main
       className="min-h-screen flex flex-col items-center justify-center"
       style={{ background: 'linear-gradient(160deg, #0d2b0d 0%, #1a5c1a 60%, #0d2b0d 100%)' }}
     >
-      {/* 타이틀 */}
-      <h1 className="text-white text-3xl font-extrabold tracking-tight mb-2 drop-shadow-lg">
+      {/* 타이틀 — 클릭 시 전체화면 토글 */}
+      <h1
+        onClick={toggleFullscreen}
+        className="text-white text-3xl font-extrabold tracking-tight mb-2 drop-shadow-lg cursor-pointer select-none"
+        title={isFullscreen ? '전체화면 해제' : '전체화면'}
+      >
         ⛳ 이벤트 추첨
       </h1>
       <p className="text-green-300 text-sm mb-6 opacity-80">버튼을 눌러 행운을 잡으세요!</p>
