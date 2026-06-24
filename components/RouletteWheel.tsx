@@ -8,6 +8,14 @@ interface Props {
   onSpinComplete: () => void
 }
 
+interface ConfettiParticle {
+  x: number; y: number
+  vx: number; vy: number
+  color: string; size: number
+  rotation: number; rotationSpeed: number
+  opacity: number
+}
+
 const SPIN_DURATION = 5000
 const MIN_ROTATIONS = 8
 
@@ -17,11 +25,14 @@ function easeOut(t: number): number {
 
 export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const confettiCanvasRef = useRef<HTMLCanvasElement>(null)
+  const confettiAnimRef = useRef<number>()
   const rotationRef = useRef(0)
   const animFrameRef = useRef<number>()
   const [spinning, setSpinning] = useState(false)
   const [result, setResult] = useState<SpinResponse | null>(null)
   const [showModal, setShowModal] = useState(false)
+  const [showConfetti, setShowConfetti] = useState(false)
 
   const drawWheel = useCallback(
     (rotation: number) => {
@@ -30,7 +41,6 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
       const ctx = canvas.getContext('2d')
       if (!ctx) return
 
-      // canvas.width는 물리 픽셀 — ctx.scale(dpr,dpr) 이후엔 CSS 픽셀 기준으로 계산해야 함
       const size = canvas.clientWidth || canvas.width
       const cx = size / 2
       const cy = size / 2
@@ -40,18 +50,17 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
 
       ctx.clearRect(0, 0, size, size)
 
-      // --- 외부 원형 테두리 ---
+      // 외부 원형 테두리
       ctx.beginPath()
       ctx.arc(cx, cy, radius + 14, 0, 2 * Math.PI)
       ctx.fillStyle = '#1a3a1a'
       ctx.fill()
 
-      // --- 세그먼트 그리기 ---
+      // 세그먼트
       ctx.save()
       ctx.translate(cx, cy)
       ctx.rotate(rotation)
 
-      // 등수 라벨 계산 (비꽝 prizes만 1등, 2등... 순서 부여)
       let rankIdx = 1
       const labelMap = new Map<number, string>()
       prizes.forEach((p) => {
@@ -62,7 +71,6 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         const startAngle = -Math.PI / 2 - segAngle / 2 + i * segAngle
         const endAngle = startAngle + segAngle
 
-        // 세그먼트 채우기 — 소진 여부 무관하게 원래 색상 유지
         ctx.beginPath()
         ctx.moveTo(0, 0)
         ctx.arc(0, 0, radius, startAngle, endAngle)
@@ -73,7 +81,6 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         ctx.lineWidth = 2
         ctx.stroke()
 
-        // 텍스트 — 세그먼트 중앙에 배치
         ctx.save()
         ctx.rotate(startAngle + segAngle / 2)
         const fontSize = Math.max(12, Math.min(22, radius * 0.14))
@@ -89,7 +96,35 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
 
       ctx.restore()
 
-      // --- 중심 원 ---
+      // LED 전구 (외부 링)
+      const numBulbs = 32
+      const bulbDist = radius + 9
+      const phase = Math.floor(Date.now() / 180)
+      for (let i = 0; i < numBulbs; i++) {
+        const angle = -Math.PI / 2 + (i / numBulbs) * 2 * Math.PI
+        const bx = cx + bulbDist * Math.cos(angle)
+        const by = cy + bulbDist * Math.sin(angle)
+        const isOn = (i + phase) % 2 === 0
+
+        ctx.beginPath()
+        ctx.arc(bx, by, 4.5, 0, 2 * Math.PI)
+        if (isOn) {
+          ctx.shadowColor = '#FFD700'
+          ctx.shadowBlur = 16
+          const grd = ctx.createRadialGradient(bx - 1, by - 1, 0, bx, by, 4.5)
+          grd.addColorStop(0, '#FFFFFF')
+          grd.addColorStop(0.4, '#FFEE44')
+          grd.addColorStop(1, '#FFB300')
+          ctx.fillStyle = grd
+        } else {
+          ctx.shadowBlur = 0
+          ctx.fillStyle = '#2a1800'
+        }
+        ctx.fill()
+      }
+      ctx.shadowBlur = 0
+
+      // 중심 원
       ctx.beginPath()
       ctx.arc(cx, cy, 22, 0, 2 * Math.PI)
       ctx.fillStyle = '#1a3a1a'
@@ -98,17 +133,15 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
       ctx.lineWidth = 3
       ctx.stroke()
 
-      // 중심 골프공 모양 점
       ctx.beginPath()
       ctx.arc(cx, cy, 8, 0, 2 * Math.PI)
       ctx.fillStyle = '#ffffff'
       ctx.fill()
-
     },
     [prizes]
   )
 
-  // 캔버스 크기를 DPR 고려해 설정
+  // 캔버스 크기 설정
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -122,6 +155,75 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
     ctx?.scale(dpr, dpr)
     drawWheel(rotationRef.current)
   }, [prizes, drawWheel])
+
+  // 비회전 상태에서 LED 깜빡임을 위한 idle 루프
+  useEffect(() => {
+    if (spinning) return
+    let frameId: number
+    const loop = () => {
+      drawWheel(rotationRef.current)
+      frameId = requestAnimationFrame(loop)
+    }
+    frameId = requestAnimationFrame(loop)
+    return () => cancelAnimationFrame(frameId)
+  }, [spinning, drawWheel])
+
+  // 컨페티 시작
+  const startConfetti = useCallback(() => {
+    const canvas = confettiCanvasRef.current
+    if (!canvas) return
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+
+    const colors = ['#FF4444', '#44FF88', '#4488FF', '#FFEE00', '#FF44FF', '#44FFFF', '#FF8800', '#FF69B4', '#00FA9A', '#FFD700']
+    const particles: ConfettiParticle[] = Array.from({ length: 200 }, () => ({
+      x: Math.random() * canvas.width,
+      y: -20 - Math.random() * 200,
+      vx: (Math.random() - 0.5) * 6,
+      vy: 3 + Math.random() * 4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      size: 7 + Math.random() * 9,
+      rotation: Math.random() * 360,
+      rotationSpeed: (Math.random() - 0.5) * 14,
+      opacity: 1,
+    }))
+
+    if (confettiAnimRef.current) cancelAnimationFrame(confettiAnimRef.current)
+
+    const animate = () => {
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+      let hasActive = false
+      for (const p of particles) {
+        if (p.opacity <= 0) continue
+        hasActive = true
+        p.x += p.vx
+        p.y += p.vy
+        p.rotation += p.rotationSpeed
+        p.vy += 0.08
+        if (p.y > canvas.height * 0.75) p.opacity -= 0.022
+
+        ctx.save()
+        ctx.globalAlpha = Math.max(0, p.opacity)
+        ctx.translate(p.x, p.y)
+        ctx.rotate((p.rotation * Math.PI) / 180)
+        ctx.fillStyle = p.color
+        ctx.fillRect(-p.size / 2, -p.size / 3, p.size, p.size * 0.55)
+        ctx.restore()
+      }
+
+      if (hasActive) {
+        confettiAnimRef.current = requestAnimationFrame(animate)
+      } else {
+        setShowConfetti(false)
+      }
+    }
+
+    setShowConfetti(true)
+    confettiAnimRef.current = requestAnimationFrame(animate)
+  }, [])
 
   const spin = async () => {
     if (spinning || prizes.length === 0) return
@@ -146,9 +248,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
     const n = prizes.length
     const segAngle = (2 * Math.PI) / n
 
-    // 현재 회전 정규화
     const curNorm = ((rotationRef.current % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)
-    // 당첨 세그먼트를 포인터 위치로 오게 하는 목표 각도
     const targetBase = ((-segmentIndex * segAngle) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI)
     let delta = (targetBase - curNorm + 2 * Math.PI) % (2 * Math.PI)
     if (delta < 0.2) delta += 2 * Math.PI
@@ -170,6 +270,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         setSpinning(false)
         setResult(spinResponse)
         setShowModal(true)
+        if (!spinResponse.prize.is_consolation) startConfetti()
         onSpinComplete()
       }
     }
@@ -177,13 +278,20 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
     animFrameRef.current = requestAnimationFrame(animate)
   }
 
+  const isWin = result && !result.prize.is_consolation
+
   return (
     <div className="flex flex-col items-center justify-center gap-6 w-full h-full">
-      {/* 휠 + 고정 결정선 포인터 */}
+      {/* 컨페티 캔버스 */}
+      <canvas
+        ref={confettiCanvasRef}
+        className="fixed inset-0 pointer-events-none"
+        style={{ zIndex: 200, display: showConfetti ? 'block' : 'none' }}
+      />
+
+      {/* 휠 + 포인터 */}
       <div className="relative flex items-center justify-center" style={{ marginTop: '36px' }}>
-        {/* 12시 방향 고정 삼각형 포인터 (아래를 향함) */}
         <div className="absolute pointer-events-none" style={{ zIndex: 10, top: -22, left: '50%', transform: 'translateX(-50%)' }}>
-          {/* 흰색 외곽선 레이어 */}
           <div style={{
             position: 'absolute',
             top: -2,
@@ -195,7 +303,6 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
             borderRight: '17px solid transparent',
             borderTop: '34px solid rgba(255,255,255,0.9)',
           }} />
-          {/* 빨간 삼각형 */}
           <div style={{
             position: 'relative',
             width: 0,
@@ -228,26 +335,27 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
       {/* 결과 모달 */}
       {showModal && result && (
         <div
-          className="fixed inset-0 bg-black/75 flex items-center justify-center z-50 px-6"
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-6"
+          style={{ backdropFilter: 'blur(6px)' }}
           onClick={() => setShowModal(false)}
         >
           <div
-            className="bg-white rounded-3xl p-10 w-full max-w-xs text-center shadow-2xl"
+            className={`modal-bounce-in bg-white rounded-3xl p-10 w-full max-w-xs text-center shadow-2xl ${isWin ? 'win-glow' : ''}`}
             onClick={e => e.stopPropagation()}
           >
             {result.prize.is_consolation ? (
               <>
-                <div className="text-7xl mb-3">😢</div>
+                <div className="text-7xl mb-3 consolation-shake inline-block">😢</div>
                 <p className="text-2xl text-gray-500 mb-1">아쉽네요</p>
                 <p className="text-5xl font-black text-gray-400 mb-6">꽝!</p>
               </>
             ) : (
               <>
-                <div className="text-7xl mb-3">🎉</div>
+                <div className="text-7xl mb-3" style={{ filter: 'drop-shadow(0 0 14px gold)' }}>🎉</div>
                 <p className="text-2xl text-green-600 font-bold mb-1">축하합니다!</p>
                 <p
                   className="text-4xl font-black mb-1"
-                  style={{ color: result.prize.color }}
+                  style={{ color: result.prize.color, textShadow: `0 0 18px ${result.prize.color}` }}
                 >
                   {result.prize.name}
                 </p>
