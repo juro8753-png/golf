@@ -320,16 +320,47 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
       <button
         onClick={spin}
         disabled={spinning}
-        className={`
-          px-14 py-5 text-2xl font-extrabold rounded-full shadow-2xl
-          transition-all duration-150 select-none
-          ${spinning
-            ? 'bg-gray-500 text-gray-300 cursor-not-allowed scale-95'
-            : 'bg-green-500 hover:bg-green-400 active:scale-95 text-white shadow-green-900/50'}
-        `}
-        style={{ letterSpacing: '0.05em' }}
+        className="relative select-none overflow-hidden"
+        style={{
+          width: '100%', maxWidth: 300,
+          border: 'none',
+          cursor: spinning ? 'not-allowed' : 'pointer',
+          borderRadius: 30,
+          padding: '16px 20px',
+          background: spinning
+            ? 'linear-gradient(180deg,#888,#666 48%,#555)'
+            : 'linear-gradient(180deg,#fbe08a,#f2bd3e 48%,#e29a1b)',
+          color: spinning ? '#ccc' : '#3a230a',
+          fontFamily: "'Noto Sans KR', sans-serif",
+          fontWeight: 900,
+          fontSize: 20,
+          letterSpacing: '.5px',
+          animation: spinning ? 'none' : 'btnGlow 2.2s ease-in-out infinite',
+          transform: spinning ? 'scale(0.97)' : undefined,
+          transition: 'transform .15s',
+        }}
       >
-        {spinning ? '추첨 중…' : '🎯  돌리기!'}
+        {!spinning && (
+          <span style={{
+            position: 'absolute', inset: 0, pointerEvents: 'none',
+            background: 'linear-gradient(105deg,transparent 38%,rgba(255,255,255,.8) 50%,transparent 62%)',
+            backgroundSize: '220% 100%',
+            animation: 'sheen 3.2s ease-in-out infinite',
+          }} />
+        )}
+        <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+          {spinning ? '추첨 중…' : (
+            <>
+              돌리기!
+              <span style={{
+                display: 'inline-flex', width: 24, height: 24,
+                borderRadius: '50%', background: '#3a230a',
+                color: '#f2bd3e', alignItems: 'center', justifyContent: 'center',
+                fontSize: 14, animation: 'arrowNudge 1.2s ease-in-out infinite',
+              }}>›</span>
+            </>
+          )}
+        </span>
       </button>
 
       {/* 결과 모달 */}

@@ -5,15 +5,6 @@ import RouletteWheel from '@/components/RouletteWheel'
 import FireworksBackground from '@/components/FireworksBackground'
 import { Prize } from '@/types'
 
-const STARS = Array.from({ length: 70 }, (_, i) => ({
-  id: i,
-  x: (i * 37 + i * i * 7 + 13) % 97,
-  y: (i * 53 + i * i * 11 + 7) % 97,
-  size: 1 + (i % 3),
-  delay: (i * 0.4) % 5,
-  duration: 1.5 + (i % 4) * 0.7,
-}))
-
 export default function Home() {
   const [prizes, setPrizes] = useState<Prize[]>([])
   const [loading, setLoading] = useState(true)
@@ -53,46 +44,54 @@ export default function Home() {
   return (
     <div
       className="relative min-h-screen overflow-hidden"
-      style={{ background: 'linear-gradient(160deg, #0d2b0d 0%, #1a5c1a 60%, #0d2b0d 100%)' }}
+      style={{
+        background: 'radial-gradient(130% 100% at 50% 0%, #3a1d52 0%, #2a1342 38%, #1a0d2e 72%, #0d0719 100%)',
+        fontFamily: "'Noto Sans KR', sans-serif",
+      }}
     >
-      {/* 폭죽 + 금색 리본 배경 */}
+      {/* 폭죽 캔버스 */}
       <FireworksBackground />
 
-      {/* 별 배경 */}
-      {STARS.map(s => (
-        <span
-          key={s.id}
-          className="absolute rounded-full bg-white pointer-events-none"
-          style={{
-            left: `${s.x}%`,
-            top: `${s.y}%`,
-            width: `${s.size * 2 + 1}px`,
-            height: `${s.size * 2 + 1}px`,
-            animation: `twinkle ${s.duration}s ${s.delay}s ease-in-out infinite`,
-            zIndex: 1,
-          }}
-        />
-      ))}
-
-      {/* 메인 콘텐츠 */}
+      {/* 보라 비네트 오버레이 */}
       <div
-        className="relative flex flex-col items-center justify-center min-h-screen"
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          zIndex: 1,
+          background: 'radial-gradient(70% 55% at 50% 42%, rgba(122,70,160,.35), transparent 70%)',
+        }}
+      />
+
+      {/* 콘텐츠 */}
+      <div
+        className="relative flex flex-col items-center justify-center min-h-screen px-5 py-8"
         style={{ zIndex: 2 }}
       >
-        {/* 타이틀 — 클릭 시 전체화면 토글 */}
-        <h1
+        {/* 헤드라인 */}
+        <div
+          className="flex items-center gap-3 mb-1 cursor-pointer select-none"
           onClick={toggleFullscreen}
-          className="text-white text-3xl font-extrabold tracking-tight mb-2 drop-shadow-lg cursor-pointer select-none"
           title={isFullscreen ? '전체화면 해제' : '전체화면'}
         >
-          ⛳ 이벤트 추첨
-        </h1>
-        <p className="text-green-300 text-sm mb-6 opacity-80">버튼을 눌러 행운을 잡으세요!</p>
+          <span style={{
+            fontSize: 42, lineHeight: 1,
+            display: 'inline-block',
+            transform: 'translateY(-12px)',
+            filter: 'drop-shadow(0 0 10px rgba(245,200,90,.8))',
+            animation: 'fukPulse 2.6s ease-in-out infinite',
+          }}>⛳</span>
+          <span style={{
+            fontFamily: "'Black Han Sans', sans-serif",
+            fontSize: 42, lineHeight: 1,
+            verticalAlign: 'middle',
+            color: '#fff',
+            textShadow: '0 2px 6px rgba(0,0,0,.55)',
+          }}>이벤트 추첨</span>
+        </div>
 
         {loading ? (
           <div className="text-white text-xl animate-pulse">불러오는 중…</div>
         ) : prizes.length === 0 ? (
-          <div className="text-yellow-300 text-lg">등록된 상품이 없습니다.</div>
+          <div style={{ color: '#f4c64a', fontSize: 18 }}>등록된 상품이 없습니다.</div>
         ) : (
           <RouletteWheel prizes={prizes} onSpinComplete={fetchPrizes} />
         )}
