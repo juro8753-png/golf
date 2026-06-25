@@ -13,6 +13,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     is_consolation: !!body.is_consolation,
     color: body.color,
     display_order: Number(body.display_order ?? 0),
+    probability: Number(body.probability ?? 0),
   })
 
   if (!updated) return NextResponse.json({ error: '상품을 찾을 수 없습니다.' }, { status: 404 })

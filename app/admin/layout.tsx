@@ -5,7 +5,6 @@ import { usePathname, useRouter } from 'next/navigation'
 
 const navItems = [
   { href: '/admin', label: '대시보드' },
-  { href: '/admin/prizes', label: '상품 관리' },
   { href: '/admin/results', label: '당첨 내역' },
 ]
 

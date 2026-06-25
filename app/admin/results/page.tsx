@@ -24,6 +24,13 @@ export default function ResultsPage() {
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
+  const handleReset = async () => {
+    if (!confirm('당첨 내역을 전부 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) return
+    await fetch('/api/admin/results', { method: 'DELETE' })
+    setPage(1)
+    fetchResults(1)
+  }
+
   const formatDate = (iso: string) => {
     const d = new Date(iso)
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`
@@ -32,7 +39,17 @@ export default function ResultsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">당첨 내역</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-gray-800">당첨 내역</h1>
+          {total > 0 && (
+            <button
+              onClick={handleReset}
+              className="text-sm text-red-500 hover:text-red-700 border border-red-300 hover:border-red-500 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              리셋하기
+            </button>
+          )}
+        </div>
         <span className="text-sm text-gray-500">총 {total}건</span>
       </div>
 
@@ -54,7 +71,7 @@ export default function ResultsPage() {
                 {results.map((r, i) => (
                   <tr key={r.id} className="border-t border-gray-100 hover:bg-gray-50">
                     <td className="px-4 py-3 text-gray-400 text-xs">
-                      {(page - 1) * PAGE_SIZE + i + 1}
+                      {total - (page - 1) * PAGE_SIZE - i}
                     </td>
                     <td className="px-4 py-3 text-gray-500 font-mono text-xs">
                       {formatDate(r.spun_at)}

@@ -1,84 +1,443 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { AdminStats } from '@/types'
+import { useEffect, useState, useCallback } from 'react'
+import { AdminStats, Prize } from '@/types'
+import { WHEEL_THEMES, getSavedTheme, saveTheme, type ThemeKey } from '@/lib/wheel-themes'
+
+const COLORS = [
+  '#AAAAAA', '#FFD700', '#FF6384', '#36A2EB',
+  '#4BC0C0', '#9966FF', '#FF9F40', '#66BB6A',
+]
+
+const emptyForm = {
+  name: '',
+  total_quantity: '',
+  remaining_quantity: '',
+  is_unlimited: false,
+  is_consolation: false,
+  color: '#36A2EB',
+  display_order: '',
+}
+
+type FormState = typeof emptyForm
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null)
+  const [prizes, setPrizes] = useState<Prize[]>([])
   const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
+  const [editing, setEditing] = useState<Prize | null>(null)
+  const [form, setForm] = useState<FormState>(emptyForm)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
-  useEffect(() => {
-    fetch('/api/admin/stats')
-      .then(r => r.json())
-      .then(data => { setStats(data); setLoading(false) })
+  // 확률 인라인 편집용 state
+  const [probInputs, setProbInputs] = useState<Record<number, string>>({})
+  const [savingProb, setSavingProb] = useState(false)
+  const [selectedTheme, setSelectedTheme] = useState<ThemeKey>('standard')
+
+  useEffect(() => { setSelectedTheme(getSavedTheme()) }, [])
+
+  const fetchAll = useCallback(async () => {
+    setLoading(true)
+    const [statsRes, prizesRes] = await Promise.all([
+      fetch('/api/admin/stats'),
+      fetch('/api/admin/prizes'),
+    ])
+    const statsData = await statsRes.json()
+    const prizesData: Prize[] = await prizesRes.json()
+    setStats(statsData)
+    setPrizes(prizesData)
+    // 확률 입력값 초기화
+    const inputs: Record<number, string> = {}
+    prizesData.forEach(p => { inputs[p.id] = String(p.probability ?? 0) })
+    setProbInputs(inputs)
+    setLoading(false)
   }, [])
 
+  useEffect(() => { fetchAll() }, [fetchAll])
+
+  // 확률 합계
+  const probTotal = prizes.reduce((sum, p) => {
+    const v = parseFloat(probInputs[p.id] ?? '0') || 0
+    return sum + v
+  }, 0)
+
+  const probChanged = prizes.some(p => {
+    const current = parseFloat(probInputs[p.id] ?? '0') || 0
+    return Math.abs(current - (p.probability ?? 0)) > 0.001
+  })
+
+  const handleSaveProb = async () => {
+    if (probTotal <= 0) {
+      alert('확률을 입력해주세요.')
+      return
+    }
+    if (probTotal < 99 || probTotal > 100) {
+      alert(`확률 합계가 ${probTotal.toFixed(1)}%입니다.\n99~100% 사이로 입력해주세요.`)
+      return
+    }
+    setSavingProb(true)
+    // 비례 정규화 후 가장 큰 값의 첫 항목이 나머지 흡수 → 합계 정확히 100
+    const normalized = prizes.map(p => ({
+      id: p.id,
+      probability: Math.round(((parseFloat(probInputs[p.id] ?? '0') || 0) / probTotal) * 10000) / 100,
+    }))
+    const assignedSum = normalized.reduce((s, u) => s + u.probability, 0)
+    const remainder = Math.round((100 - assignedSum) * 100) / 100
+    const maxVal = Math.max(...normalized.map(u => u.probability))
+    const maxIdx = normalized.findIndex(u => u.probability === maxVal)
+    if (maxIdx !== -1) normalized[maxIdx].probability = Math.round((normalized[maxIdx].probability + remainder) * 100) / 100
+    const updates = normalized
+    const res = await fetch('/api/admin/prizes', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    })
+    if (res.ok) {
+      await fetchAll()
+    } else {
+      const data = await res.json()
+      alert(data.error || '저장 실패')
+    }
+    setSavingProb(false)
+  }
+
+  const openAdd = () => {
+    setEditing(null)
+    setForm({ ...emptyForm, display_order: String(prizes.length) })
+    setError('')
+    setShowModal(true)
+  }
+
+  const openEdit = (p: Prize) => {
+    setEditing(p)
+    setForm({
+      name: p.name,
+      total_quantity: String(p.total_quantity),
+      remaining_quantity: String(p.remaining_quantity),
+      is_unlimited: p.is_unlimited,
+      is_consolation: p.is_consolation,
+      color: p.color,
+      display_order: String(p.display_order),
+    })
+    setError('')
+    setShowModal(true)
+  }
+
+  const handleSave = async () => {
+    if (!form.name || !form.total_quantity) {
+      setError('상품명과 수량은 필수입니다.')
+      return
+    }
+    setSaving(true)
+    setError('')
+
+    const body = {
+      name: form.name,
+      total_quantity: Number(form.total_quantity),
+      remaining_quantity: editing
+        ? Number(form.remaining_quantity)
+        : Number(form.total_quantity),
+      is_unlimited: form.is_unlimited,
+      is_consolation: form.is_consolation,
+      color: form.color,
+      display_order: Number(form.display_order || 0),
+      probability: editing ? (editing.probability ?? 0) : 0,
+    }
+
+    const url = editing ? `/api/admin/prizes/${editing.id}` : '/api/admin/prizes'
+    const method = editing ? 'PUT' : 'POST'
+
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+
+    if (res.ok) {
+      setShowModal(false)
+      fetchAll()
+    } else {
+      const data = await res.json()
+      setError(data.error || '저장 실패')
+    }
+    setSaving(false)
+  }
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('정말 삭제하시겠습니까?\n관련 당첨 내역이 있으면 삭제가 거부될 수 있습니다.')) return
+    const res = await fetch(`/api/admin/prizes/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      fetchAll()
+    } else {
+      const data = await res.json()
+      alert(data.error || '삭제 실패')
+    }
+  }
+
   if (loading) return <p className="text-gray-500">불러오는 중…</p>
-  if (!stats) return <p className="text-red-500">데이터를 불러올 수 없습니다.</p>
+
+  const probTotalColor =
+    Math.abs(probTotal - 100) < 0.01 ? 'text-green-600' :
+    probTotal > 100 ? 'text-red-500' : 'text-orange-500'
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-bold text-gray-800">대시보드</h1>
 
-      {/* 요약 카드 */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <StatCard label="총 추첨 횟수" value={`${stats.total_spins}회`} color="bg-blue-50 border-blue-200" />
-        <StatCard label="총 당첨 횟수" value={`${stats.total_winners}회`} color="bg-green-50 border-green-200" />
-        <StatCard
-          label="당첨률"
-          value={stats.total_spins > 0 ? `${((stats.total_winners / stats.total_spins) * 100).toFixed(1)}%` : '-'}
-          color="bg-yellow-50 border-yellow-200"
-        />
-      </div>
+      {/* 상품 관리 */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-800">상품 관리</h2>
+          <button
+            onClick={openAdd}
+            className="bg-green-600 hover:bg-green-500 text-white font-bold px-5 py-2.5 rounded-xl transition-colors"
+          >
+            + 상품 추가
+          </button>
+        </div>
 
-      {/* 상품별 현황 */}
-      <div>
-        <h2 className="text-lg font-semibold text-gray-700 mb-3">상품별 현황</h2>
         <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
           <table className="w-full text-sm">
             <thead className="bg-gray-100 text-gray-600">
               <tr>
+                <th className="text-left px-4 py-3 font-semibold">순서</th>
                 <th className="text-left px-4 py-3 font-semibold">상품명</th>
-                <th className="px-4 py-3 font-semibold text-center">전체 수량</th>
-                <th className="px-4 py-3 font-semibold text-center">당첨 횟수</th>
                 <th className="px-4 py-3 font-semibold text-center">남은 수량</th>
-                <th className="px-4 py-3 font-semibold text-center">상태</th>
+                <th className="px-4 py-3 font-semibold text-center">무제한</th>
+                <th className="px-4 py-3 font-semibold text-center">꽝</th>
+                <th className="px-3 py-3 font-semibold text-center w-28">확률 (%)</th>
+                <th className="px-4 py-3 font-semibold text-center">관리</th>
               </tr>
             </thead>
             <tbody>
-              {stats.prize_stats.map(p => {
-                const soldOut = !p.is_unlimited && p.remaining_quantity === 0
-                return (
-                  <tr key={p.id} className="border-t border-gray-100 hover:bg-gray-50">
-                    <td className="px-4 py-3 flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full inline-block" style={{ background: p.color }} />
-                      <span className={p.is_consolation ? 'text-gray-400' : 'font-medium'}>{p.name}</span>
-                    </td>
-                    <td className="px-4 py-3 text-center text-gray-600">{p.total_quantity}</td>
-                    <td className="px-4 py-3 text-center font-medium">{p.won_count}</td>
-                    <td className="px-4 py-3 text-center">
-                      {p.is_unlimited ? (
-                        <span className="text-blue-500 font-medium">∞ 무제한</span>
-                      ) : (
-                        <span className={soldOut ? 'text-red-500 font-bold' : 'text-gray-700'}>
-                          {p.remaining_quantity}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {soldOut ? (
-                        <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">소진</span>
-                      ) : (
-                        <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full">진행중</span>
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
+              {prizes.map(p => (
+                <tr key={p.id} className="border-t border-gray-100 hover:bg-gray-50">
+                  <td className="px-4 py-3 text-gray-400">{p.display_order}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-4 h-4 rounded-full flex-shrink-0" style={{ background: p.color }} />
+                      <span className="font-medium">{p.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {p.is_unlimited
+                      ? <span className="text-blue-500">∞</span>
+                      : <span className={p.remaining_quantity === 0 ? 'text-red-500 font-bold' : ''}>{p.remaining_quantity}</span>
+                    }
+                  </td>
+                  <td className="px-4 py-3 text-center">{p.is_unlimited ? '✅' : '—'}</td>
+                  <td className="px-4 py-3 text-center">{p.is_consolation ? '✅' : '—'}</td>
+                  <td className="px-3 py-2 text-center">
+                    <div className="flex items-center justify-center gap-1">
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        step={0.1}
+                        value={probInputs[p.id] ?? '0'}
+                        onChange={e => setProbInputs(prev => ({ ...prev, [p.id]: e.target.value }))}
+                        onFocus={e => { if (e.target.value === '0') setProbInputs(prev => ({ ...prev, [p.id]: '' })) }}
+                        onBlur={e => { if (e.target.value === '') setProbInputs(prev => ({ ...prev, [p.id]: '0' })) }}
+                        className="prob-input w-16 border border-gray-300 rounded-lg px-2 py-1 text-center text-sm focus:outline-none focus:border-blue-400"
+                      />
+                      <span className="text-gray-400 text-xs">%</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-center space-x-2">
+                    <button onClick={() => openEdit(p)} className="text-blue-600 hover:underline text-sm">수정</button>
+                    <button onClick={() => handleDelete(p.id)} className="text-red-500 hover:underline text-sm">삭제</button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
+          {prizes.length === 0 && (
+            <p className="text-center text-gray-400 py-10">등록된 상품이 없습니다.</p>
+          )}
+        </div>
+
+        {/* 확률 합계 + 저장 */}
+        {prizes.length > 0 && (
+          <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-5 py-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">확률 합계:</span>
+              <span className={`text-lg font-extrabold ${probTotalColor}`}>
+                {probTotal.toFixed(1)}%
+              </span>
+              {probTotal >= 99 && probTotal <= 100 && (
+                <span className="text-green-500 text-sm">✓ 정상 범위</span>
+              )}
+              {probTotal > 100 && (
+                <span className="text-red-500 text-sm">100% 초과</span>
+              )}
+              {probTotal < 99 && probTotal > 0 && (
+                <span className="text-orange-500 text-sm">{(100 - probTotal).toFixed(1)}% 부족</span>
+              )}
+            </div>
+            <button
+              onClick={handleSaveProb}
+              disabled={savingProb || !probChanged}
+              className="bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white font-bold px-5 py-2 rounded-xl transition-colors text-sm"
+            >
+              {savingProb ? '저장 중…' : '확률 저장'}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* 룰렛 디자인 선택 */}
+      <div className="space-y-3">
+        <h2 className="text-xl font-bold text-gray-800">룰렛 디자인</h2>
+        <div className="flex gap-3 flex-wrap">
+          {(Object.values(WHEEL_THEMES)).map(th => {
+            const [bg, c1, c2] = th.previewColors
+            const isSelected = selectedTheme === th.key
+            return (
+              <button
+                key={th.key}
+                onClick={() => { saveTheme(th.key); setSelectedTheme(th.key) }}
+                className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                  isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-400 bg-white'
+                }`}
+              >
+                {/* 미니 룰렛 미리보기 */}
+                <svg width="72" height="72" viewBox="0 0 72 72">
+                  <circle cx="36" cy="36" r="34" fill={bg} />
+                  {[0,1,2,3,4,5].map(i => {
+                    const a0 = (-90 - 30 + i * 60) * Math.PI / 180
+                    const a1 = a0 + 60 * Math.PI / 180
+                    const x0 = 36 + 28 * Math.cos(a0), y0 = 36 + 28 * Math.sin(a0)
+                    const x1 = 36 + 28 * Math.cos(a1), y1 = 36 + 28 * Math.sin(a1)
+                    return <path key={i} d={`M36 36 L${x0.toFixed(1)} ${y0.toFixed(1)} A28 28 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)} Z`} fill={i % 2 === 0 ? c1 : c2} stroke={th.dividerColor} strokeWidth="0.8" />
+                  })}
+                  <circle cx="36" cy="36" r="6" fill={bg} stroke={th.hubInnerStroke} strokeWidth="1.5" />
+                  {th.rimRingColor !== 'none' && <circle cx="36" cy="36" r="34" fill="none" stroke={th.rimRingColor} strokeWidth="2" />}
+                </svg>
+                <span className={`text-xs font-bold ${isSelected ? 'text-blue-600' : 'text-gray-600'}`}>
+                  {th.name}
+                </span>
+                {isSelected && <span className="text-xs text-blue-400">✓ 적용중</span>}
+              </button>
+            )
+          })}
         </div>
       </div>
+
+      {/* 상품 추가/수정 모달 */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl">
+            <h2 className="text-xl font-bold mb-6">{editing ? '상품 수정' : '상품 추가'}</h2>
+
+            <div className="space-y-4">
+              <Field label="상품명">
+                <input
+                  className="input"
+                  value={form.name}
+                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                  placeholder="예) 1등 상품, 꽝"
+                />
+              </Field>
+
+              <Field label={editing ? '남은 수량' : '수량'}>
+                <input
+                  className="input"
+                  type="number"
+                  min={0}
+                  value={editing ? form.remaining_quantity : form.total_quantity}
+                  onChange={e => setForm(f => editing
+                    ? { ...f, remaining_quantity: e.target.value }
+                    : { ...f, total_quantity: e.target.value, remaining_quantity: e.target.value }
+                  )}
+                  placeholder="예) 100"
+                />
+              </Field>
+
+              <Field label="표시 순서 (숫자, 낮을수록 먼저)">
+                <input
+                  className="input"
+                  type="number"
+                  value={form.display_order}
+                  onChange={e => setForm(f => ({ ...f, display_order: e.target.value }))}
+                />
+              </Field>
+
+              <Field label="색상">
+                <div className="flex gap-2 flex-wrap">
+                  {COLORS.map(c => (
+                    <button
+                      key={c}
+                      className={`w-8 h-8 rounded-full border-4 transition-transform ${form.color === c ? 'border-gray-800 scale-110' : 'border-transparent'}`}
+                      style={{ background: c }}
+                      onClick={() => setForm(f => ({ ...f, color: c }))}
+                    />
+                  ))}
+                </div>
+              </Field>
+
+              <div className="flex gap-6">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.is_unlimited}
+                    onChange={e => setForm(f => ({ ...f, is_unlimited: e.target.checked }))}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm">수량 무제한</span>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.is_consolation}
+                    onChange={e => setForm(f => ({ ...f, is_consolation: e.target.checked }))}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm">꽝 처리 (당첨 아님)</span>
+                </label>
+              </div>
+            </div>
+
+            {error && <p className="text-red-500 text-sm mt-3">{error}</p>}
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowModal(false)}
+                className="flex-1 py-3 border border-gray-300 rounded-xl font-medium hover:bg-gray-50 transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex-1 py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl transition-colors disabled:opacity-50"
+              >
+                {saving ? '저장 중…' : '저장'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        .prob-input::-webkit-inner-spin-button,
+        .prob-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        .prob-input { -moz-appearance: textfield; }
+        .input {
+          width: 100%;
+          border: 1px solid #d1d5db;
+          border-radius: 0.75rem;
+          padding: 0.625rem 1rem;
+          font-size: 1rem;
+          outline: none;
+          transition: border-color 0.15s;
+        }
+        .input:focus {
+          border-color: #16a34a;
+          box-shadow: 0 0 0 2px rgba(22,163,74,0.15);
+        }
+      `}</style>
     </div>
   )
 }
@@ -88,6 +447,15 @@ function StatCard({ label, value, color }: { label: string; value: string; color
     <div className={`border rounded-xl p-5 ${color}`}>
       <p className="text-xs text-gray-500 mb-1">{label}</p>
       <p className="text-3xl font-extrabold text-gray-800">{value}</p>
+    </div>
+  )
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+      {children}
     </div>
   )
 }

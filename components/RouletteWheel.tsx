@@ -2,6 +2,8 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { Prize, SpinResponse } from '@/types'
+import { soundEngine } from '@/lib/sounds'
+import { getSavedTheme, WHEEL_THEMES, THEME_STORAGE_KEY, type WheelThemeConfig } from '@/lib/wheel-themes'
 
 interface Props {
   prizes: Prize[]
@@ -29,10 +31,22 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
   const confettiAnimRef = useRef<number>()
   const rotationRef = useRef(0)
   const animFrameRef = useRef<number>()
+  const lastTickSegRef = useRef(-1)
   const [spinning, setSpinning] = useState(false)
   const [result, setResult] = useState<SpinResponse | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
+  const [theme, setTheme] = useState<WheelThemeConfig>(WHEEL_THEMES.standard)
+
+  // 테마 변경 감지
+  useEffect(() => {
+    setTheme(WHEEL_THEMES[getSavedTheme()])
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === THEME_STORAGE_KEY) setTheme(WHEEL_THEMES[getSavedTheme()])
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
 
   const drawWheel = useCallback(
     (rotation: number) => {
@@ -47,38 +61,56 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
       const radius = cx - 28
       const n = prizes.length
       const segAngle = (2 * Math.PI) / n
+      const th = theme
 
       ctx.clearRect(0, 0, size, size)
 
       // 외부 원형 테두리
       ctx.beginPath()
       ctx.arc(cx, cy, radius + 14, 0, 2 * Math.PI)
-      ctx.fillStyle = '#1a3a1a'
+      ctx.fillStyle = th.rimFill
       ctx.fill()
+
+      // 골드 림 링 (로열골드·버건디 크림)
+      if (th.rimRingColor !== 'none') {
+        ctx.beginPath()
+        ctx.arc(cx, cy, radius + 14, 0, 2 * Math.PI)
+        ctx.strokeStyle = th.rimRingColor
+        ctx.lineWidth = 5
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.arc(cx, cy, radius + 6, 0, 2 * Math.PI)
+        ctx.strokeStyle = th.rimRingColor
+        ctx.lineWidth = 1.5
+        ctx.globalAlpha = 0.5
+        ctx.stroke()
+        ctx.globalAlpha = 1
+      }
 
       // 세그먼트
       ctx.save()
       ctx.translate(cx, cy)
       ctx.rotate(rotation)
 
-      let rankIdx = 1
-      const labelMap = new Map<number, string>()
-      prizes.forEach((p) => {
-        labelMap.set(p.id, p.is_consolation ? '꽝' : `${rankIdx++}등`)
-      })
-
       prizes.forEach((prize, i) => {
         const startAngle = -Math.PI / 2 - segAngle / 2 + i * segAngle
         const endAngle = startAngle + segAngle
+
+        const segFill = th.useCustomSegColors
+          ? prize.color
+          : i % 2 === 0 ? th.segEvenFill : th.segOddFill
+        const segText = th.useCustomSegColors
+          ? '#ffffff'
+          : i % 2 === 0 ? th.segEvenText : th.segOddText
 
         ctx.beginPath()
         ctx.moveTo(0, 0)
         ctx.arc(0, 0, radius, startAngle, endAngle)
         ctx.closePath()
-        ctx.fillStyle = prize.color
+        ctx.fillStyle = segFill
         ctx.fill()
-        ctx.strokeStyle = '#ffffff'
-        ctx.lineWidth = 2
+        ctx.strokeStyle = th.dividerColor
+        ctx.lineWidth = th.dividerWidth
         ctx.stroke()
 
         ctx.save()
@@ -87,10 +119,10 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         ctx.font = `bold ${fontSize}px "Apple SD Gothic Neo", "Malgun Gothic", sans-serif`
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
-        ctx.fillStyle = '#ffffff'
-        ctx.shadowColor = 'rgba(0,0,0,0.7)'
+        ctx.fillStyle = segText
+        ctx.shadowColor = 'rgba(0,0,0,0.6)'
         ctx.shadowBlur = 4
-        ctx.fillText(labelMap.get(prize.id) ?? '꽝', radius * 0.6, 0)
+        ctx.fillText(prize.name, radius * 0.6, 0)
         ctx.restore()
       })
 
@@ -109,16 +141,16 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         ctx.beginPath()
         ctx.arc(bx, by, 4.5, 0, 2 * Math.PI)
         if (isOn) {
-          ctx.shadowColor = '#FFD700'
+          ctx.shadowColor = th.bulbGlowColor
           ctx.shadowBlur = 16
           const grd = ctx.createRadialGradient(bx - 1, by - 1, 0, bx, by, 4.5)
           grd.addColorStop(0, '#FFFFFF')
-          grd.addColorStop(0.4, '#FFEE44')
-          grd.addColorStop(1, '#FFB300')
+          grd.addColorStop(0.4, th.bulbOnColor)
+          grd.addColorStop(1, th.bulbOnColor)
           ctx.fillStyle = grd
         } else {
           ctx.shadowBlur = 0
-          ctx.fillStyle = '#2a1800'
+          ctx.fillStyle = th.bulbOffColor
         }
         ctx.fill()
       }
@@ -127,18 +159,18 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
       // 중심 원
       ctx.beginPath()
       ctx.arc(cx, cy, 22, 0, 2 * Math.PI)
-      ctx.fillStyle = '#1a3a1a'
+      ctx.fillStyle = th.hubOuterFill
       ctx.fill()
-      ctx.strokeStyle = '#ffffff'
+      ctx.strokeStyle = th.hubInnerStroke
       ctx.lineWidth = 3
       ctx.stroke()
 
       ctx.beginPath()
       ctx.arc(cx, cy, 8, 0, 2 * Math.PI)
-      ctx.fillStyle = '#ffffff'
+      ctx.fillStyle = th.hubInnerFill
       ctx.fill()
     },
-    [prizes]
+    [prizes, theme]
   )
 
   // 캔버스 크기 설정
@@ -244,6 +276,8 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
       return
     }
 
+    soundEngine.spinStart()
+
     const { segmentIndex } = spinResponse
     const n = prizes.length
     const segAngle = (2 * Math.PI) / n
@@ -256,11 +290,26 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
     const finalRotation = rotationRef.current + delta + 2 * Math.PI * MIN_ROTATIONS
     const startRotation = rotationRef.current
     const startTime = performance.now()
+    lastTickSegRef.current = -1
+
+    // 등수 판별: 비꽝을 display_order 순으로 정렬
+    const nonConsolation = prizes.filter(p => !p.is_consolation).sort((a, b) => a.display_order - b.display_order)
+    const rank = nonConsolation.findIndex(p => p.id === spinResponse.prize.id)
+    // rank 0 = 1등, rank 1 = 2등, rank 2+ = 3등 이하
 
     const animate = (now: number) => {
       const elapsed = now - startTime
       const t = Math.min(elapsed / SPIN_DURATION, 1)
-      rotationRef.current = startRotation + (finalRotation - startRotation) * easeOut(t)
+      const newRotation = startRotation + (finalRotation - startRotation) * easeOut(t)
+
+      // 세그먼트 경계 넘을 때 틱 소리
+      const curSeg = Math.floor(((newRotation % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI) / segAngle)
+      if (curSeg !== lastTickSegRef.current) {
+        soundEngine.tick(1 - easeOut(t))
+        lastTickSegRef.current = curSeg
+      }
+
+      rotationRef.current = newRotation
       drawWheel(rotationRef.current)
 
       if (t < 1) {
@@ -270,6 +319,20 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         setSpinning(false)
         setResult(spinResponse)
         setShowModal(true)
+        if (spinResponse.prize.is_consolation) {
+          soundEngine.consolation()
+        } else if (rank === 0) {
+          soundEngine.winGrand()
+          soundEngine.playTTS('/sounds/tts_1st.mp3', 800)
+        } else if (rank === 1) {
+          soundEngine.win2nd()
+          soundEngine.playTTS('/sounds/tts_2nd.mp3', 500)
+        } else if (rank === 2) {
+          soundEngine.winNormal()
+          soundEngine.playTTS('/sounds/tts_3rd.mp3', 500)
+        } else {
+          soundEngine.winNormal()
+        }
         if (!spinResponse.prize.is_consolation) startConfetti()
         onSpinComplete()
       }
@@ -353,11 +416,13 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
             <>
               돌리기!
               <span style={{
-                display: 'inline-flex', width: 24, height: 24,
+                display: 'inline-flex', width: 26, height: 26,
                 borderRadius: '50%', background: '#3a230a',
                 color: '#f2bd3e', alignItems: 'center', justifyContent: 'center',
-                fontSize: 14, animation: 'arrowNudge 1.2s ease-in-out infinite',
-              }}>›</span>
+                fontSize: 20, lineHeight: 1, animation: 'arrowNudge 1.2s ease-in-out infinite',
+              }}>
+                <span style={{ position: 'relative', top: -1, left: 1, lineHeight: 1 }}>▸</span>
+              </span>
             </>
           )}
         </span>
