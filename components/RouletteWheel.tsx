@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { Prize, SpinResponse } from '@/types'
 import { soundEngine } from '@/lib/sounds'
 import { getSavedTheme, WHEEL_THEMES, THEME_STORAGE_KEY, type WheelThemeConfig } from '@/lib/wheel-themes'
@@ -37,6 +38,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
   const [showModal, setShowModal] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
   const [theme, setTheme] = useState<WheelThemeConfig>(WHEEL_THEMES.standard)
+  const router = useRouter()
 
   // 테마 변경 감지
   useEffect(() => {
@@ -376,7 +378,12 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
             filter: 'drop-shadow(0 0 8px rgba(230,57,70,0.85))',
           }} />
         </div>
-        <canvas ref={canvasRef} className="rounded-full" />
+        <canvas
+          ref={canvasRef}
+          className="rounded-full"
+          onDoubleClick={() => router.push('/admin')}
+          style={{ cursor: 'pointer' }}
+        />
       </div>
 
       {/* 돌리기 버튼 */}

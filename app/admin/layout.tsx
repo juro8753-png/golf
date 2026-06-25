@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 const navItems = [
   { href: '/admin', label: '대시보드' },
   { href: '/admin/results', label: '당첨 내역' },
+  { href: '/', label: '룰렛판으로' },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
