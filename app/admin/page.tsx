@@ -260,35 +260,33 @@ export default function AdminDashboard() {
           <table className="w-full text-sm">
             <thead className="bg-gray-100 text-gray-600">
               <tr>
-                <th className="text-left px-4 py-3 font-semibold">순서</th>
-                <th className="text-left px-4 py-3 font-semibold">상품명</th>
-                <th className="px-4 py-3 font-semibold text-center">남은 수량</th>
-                <th className="px-4 py-3 font-semibold text-center">무제한</th>
-                <th className="px-4 py-3 font-semibold text-center">꽝</th>
-                <th className="px-3 py-3 font-semibold text-center w-28">확률 (%)</th>
-                <th className="px-4 py-3 font-semibold text-center">관리</th>
+                <th className="text-left px-3 py-3 font-semibold hidden sm:table-cell">순서</th>
+                <th className="text-left px-3 py-3 font-semibold">상품명</th>
+                <th className="px-3 py-3 font-semibold text-center">수량</th>
+                <th className="px-2 py-3 font-semibold text-center w-20 sm:w-28">확률(%)</th>
+                <th className="px-3 py-3 font-semibold text-center">관리</th>
               </tr>
             </thead>
             <tbody>
               {prizes.map(p => (
                 <tr key={p.id} className="border-t border-gray-100 hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-400">{p.display_order}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <span className="w-4 h-4 rounded-full flex-shrink-0" style={{ background: p.color }} />
+                  <td className="px-3 py-3 text-gray-400 hidden sm:table-cell">{p.display_order}</td>
+                  <td className="px-3 py-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ background: p.color }} />
                       <span className="font-medium">{p.name}</span>
+                      {p.is_consolation && <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">꽝</span>}
+                      {p.is_unlimited && <span className="text-xs bg-blue-50 text-blue-500 px-1.5 py-0.5 rounded-full">무제한</span>}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-3 py-3 text-center">
                     {p.is_unlimited
                       ? <span className="text-blue-500">∞</span>
                       : <span className={p.remaining_quantity === 0 ? 'text-red-500 font-bold' : ''}>{p.remaining_quantity}</span>
                     }
                   </td>
-                  <td className="px-4 py-3 text-center">{p.is_unlimited ? '✅' : '—'}</td>
-                  <td className="px-4 py-3 text-center">{p.is_consolation ? '✅' : '—'}</td>
-                  <td className="px-3 py-2 text-center">
-                    <div className="flex items-center justify-center gap-1">
+                  <td className="px-2 py-2 text-center">
+                    <div className="flex items-center justify-center gap-0.5">
                       <input
                         type="number"
                         min={0}
@@ -298,14 +296,16 @@ export default function AdminDashboard() {
                         onChange={e => setProbInputs(prev => ({ ...prev, [p.id]: e.target.value }))}
                         onFocus={e => { if (e.target.value === '0') setProbInputs(prev => ({ ...prev, [p.id]: '' })) }}
                         onBlur={e => { if (e.target.value === '') setProbInputs(prev => ({ ...prev, [p.id]: '0' })) }}
-                        className="prob-input w-16 border border-gray-300 rounded-lg px-2 py-1 text-center text-sm focus:outline-none focus:border-blue-400"
+                        className="prob-input w-14 border border-gray-300 rounded-lg px-1.5 py-1 text-center text-sm focus:outline-none focus:border-blue-400"
                       />
                       <span className="text-gray-400 text-xs">%</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-center space-x-2">
-                    <button onClick={() => openEdit(p)} className="text-blue-600 hover:underline text-sm">수정</button>
-                    <button onClick={() => handleDelete(p.id)} className="text-red-500 hover:underline text-sm">삭제</button>
+                  <td className="px-3 py-3 text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      <button onClick={() => openEdit(p)} className="text-blue-600 hover:underline text-sm">수정</button>
+                      <button onClick={() => handleDelete(p.id)} className="text-red-500 hover:underline text-sm">삭제</button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -348,7 +348,7 @@ export default function AdminDashboard() {
       {/* 룰렛 디자인 선택 */}
       <div className="space-y-3">
         <h2 className="text-xl font-bold text-gray-800">룰렛 디자인</h2>
-        <div className="flex gap-3 flex-wrap">
+        <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
           {(Object.values(WHEEL_THEMES)).map(th => {
             const [bg, c1, c2] = th.previewColors
             const isSelected = selectedTheme === th.key

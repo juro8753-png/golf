@@ -33,7 +33,9 @@ export default function ResultsPage() {
 
   const formatDate = (iso: string) => {
     const d = new Date(iso)
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`
+    const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    const time = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+    return { date, time }
   }
 
   return (
@@ -61,37 +63,37 @@ export default function ResultsPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-100 text-gray-600">
                 <tr>
-                  <th className="text-left px-4 py-3 font-semibold">#</th>
-                  <th className="text-left px-4 py-3 font-semibold">일시</th>
-                  <th className="text-left px-4 py-3 font-semibold">상품명</th>
-                  <th className="px-4 py-3 font-semibold text-center">당첨 여부</th>
+                  <th className="text-left px-3 py-3 font-semibold text-xs">#</th>
+                  <th className="text-left px-3 py-3 font-semibold text-xs">일시</th>
+                  <th className="text-left px-3 py-3 font-semibold text-xs">상품명</th>
+                  <th className="px-3 py-3 font-semibold text-xs text-center">결과</th>
                 </tr>
               </thead>
               <tbody>
-                {results.map((r, i) => (
+                {results.map((r, i) => {
+                  const { date, time } = formatDate(r.spun_at)
+                  return (
                   <tr key={r.id} className="border-t border-gray-100 hover:bg-gray-50">
-                    <td className="px-4 py-3 text-gray-400 text-xs">
+                    <td className="px-3 py-2.5 text-gray-400 text-xs">
                       {total - (page - 1) * PAGE_SIZE - i}
                     </td>
-                    <td className="px-4 py-3 text-gray-500 font-mono text-xs">
-                      {formatDate(r.spun_at)}
+                    <td className="px-3 py-2.5 text-gray-500 font-mono text-xs">
+                      <div>{date}</div>
+                      <div className="text-gray-400">{time}</div>
                     </td>
-                    <td className="px-4 py-3 font-medium">
+                    <td className="px-3 py-2.5 font-medium text-sm">
                       {r.prize_name}
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-3 py-2.5 text-center">
                       {r.is_winner ? (
-                        <span className="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full">
-                          당첨
-                        </span>
+                        <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-full">당첨</span>
                       ) : (
-                        <span className="bg-gray-100 text-gray-400 text-xs px-2.5 py-1 rounded-full">
-                          꽝
-                        </span>
+                        <span className="bg-gray-100 text-gray-400 text-xs px-2 py-1 rounded-full">꽝</span>
                       )}
                     </td>
                   </tr>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
             {results.length === 0 && (
