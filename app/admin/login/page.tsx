@@ -21,7 +21,7 @@ export default function LoginPage() {
     })
 
     if (res.ok) {
-      router.replace('/admin')
+      window.location.replace('/admin')
     } else {
       const data = await res.json()
       setError(data.error || '인증 실패')
