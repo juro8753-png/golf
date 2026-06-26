@@ -36,18 +36,29 @@ export default function AdminDashboard() {
   const [savingProb, setSavingProb] = useState(false)
   const [selectedTheme, setSelectedTheme] = useState<ThemeKey>('standard')
 
+  // 일별 통계
+  const [dailyStats, setDailyStats] = useState<{
+    today_count: number
+    total_count: number
+    daily_breakdown: { date: string; count: number }[]
+  } | null>(null)
+  const [showDailyModal, setShowDailyModal] = useState(false)
+
   useEffect(() => { setSelectedTheme(getSavedTheme()) }, [])
 
   const fetchAll = useCallback(async () => {
     setLoading(true)
-    const [statsRes, prizesRes] = await Promise.all([
+    const [statsRes, prizesRes, dailyRes] = await Promise.all([
       fetch('/api/admin/stats'),
       fetch('/api/admin/prizes'),
+      fetch('/api/admin/daily-stats'),
     ])
     const statsData = await statsRes.json()
     const prizesData: Prize[] = await prizesRes.json()
+    const dailyData = await dailyRes.json()
     setStats(statsData)
     setPrizes(prizesData)
+    setDailyStats(dailyData)
     // 확률 입력값 초기화
     const inputs: Record<number, string> = {}
     prizesData.forEach(p => { inputs[p.id] = String(p.probability ?? 0) })
@@ -184,6 +195,54 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8">
+
+      {/* 참여자 통계 카드 */}
+      {dailyStats && (
+        <div className="grid grid-cols-2 gap-4">
+          <button
+            onClick={() => setShowDailyModal(true)}
+            className="text-left bg-white border border-gray-200 rounded-xl p-5 hover:border-blue-400 hover:shadow-md transition-all group"
+          >
+            <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
+              일일 참여자수
+              <span className="text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity text-xs">▾ 일별 보기</span>
+            </p>
+            <p className="text-3xl font-extrabold text-blue-600">{dailyStats.today_count}<span className="text-base font-normal text-gray-400 ml-1">명</span></p>
+          </button>
+          <div className="bg-white border border-gray-200 rounded-xl p-5">
+            <p className="text-xs text-gray-500 mb-1">누적 참여자</p>
+            <p className="text-3xl font-extrabold text-purple-600">{dailyStats.total_count}<span className="text-base font-normal text-gray-400 ml-1">명</span></p>
+          </div>
+        </div>
+      )}
+
+      {/* 일별 참여자 모달 */}
+      {showDailyModal && dailyStats && (
+        <div
+          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4"
+          onClick={() => setShowDailyModal(false)}
+        >
+          <div
+            className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl max-h-[80vh] flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-800">일별 참여자 현황</h2>
+              <button onClick={() => setShowDailyModal(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+            </div>
+            <div className="overflow-y-auto flex-1 divide-y divide-gray-100">
+              {dailyStats.daily_breakdown.length === 0 ? (
+                <p className="text-gray-400 text-center py-8">데이터가 없습니다.</p>
+              ) : dailyStats.daily_breakdown.map(({ date, count }) => (
+                <div key={date} className="flex items-center justify-between py-3 px-1">
+                  <span className="text-sm text-gray-600 font-mono">{date}</span>
+                  <span className="font-bold text-gray-800">{count}<span className="text-gray-400 font-normal text-xs ml-1">명</span></span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 상품 관리 */}
       <div className="space-y-3">
