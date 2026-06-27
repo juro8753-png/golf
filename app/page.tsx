@@ -72,6 +72,7 @@ export default function LandingPage() {
 
       {/* 레이어 1: 콘텐츠 */}
       <div
+        className="landing-center-mobile"
         style={{
           position: 'relative',
           zIndex: 2,
@@ -85,7 +86,7 @@ export default function LandingPage() {
           padding: '0 28px',
         }}
       >
-        <div className="logo-mobile-pt" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0, width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0, width: '100%' }}>
           {/* 로고 영역 */}
           <div
             className="logo-fixed-mobile"

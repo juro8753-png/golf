@@ -100,9 +100,12 @@ html, body {
     height: auto !important;
   }
   .logo-mobile-pt {
-    padding-top: 78px;
+    padding-top: 78px !important;
   }
   .roulette-center-mobile {
     padding-bottom: 78px !important;
+  }
+  .landing-center-mobile {
+    padding-top: 78px !important;
   }
 }
