@@ -27,6 +27,11 @@ html, body {
 }
 
 /* ── 폭죽 배너 디자인 키프레임 ── */
+@keyframes tw {
+  0%,100% { transform: scale(.88); filter: brightness(.85); }
+  50%      { transform: scale(1.05); filter: brightness(1.2); }
+}
+
 @keyframes floatY {
   0%,100% { transform: translateY(0); }
   50%      { transform: translateY(-6px); }

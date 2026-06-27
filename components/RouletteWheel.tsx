@@ -393,7 +393,8 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         className="relative select-none overflow-hidden"
         style={{
           width: '100%', maxWidth: 300,
-          border: 'none',
+          border: spinning ? '2.5px solid #888' : '2.5px solid #f5c832',
+          boxShadow: spinning ? 'none' : '0 0 0 1px #c07812, 0 0 14px 3px rgba(245,200,50,0.5)',
           cursor: spinning ? 'not-allowed' : 'pointer',
           borderRadius: 30,
           padding: '16px 20px',

@@ -23,6 +23,26 @@ export interface WheelThemeConfig {
 }
 
 export const WHEEL_THEMES: Record<ThemeKey, WheelThemeConfig> = {
+  burgundy_cream: {
+    key: 'burgundy_cream',
+    name: '버건디 크림',
+    rimFill: '#1a0008',
+    rimRingColor: '#caa24a',
+    useCustomSegColors: false,
+    segEvenFill: '#fff7e2',
+    segOddFill: '#c8415e',
+    segEvenText: '#c0243f',
+    segOddText: '#fffbe8',
+    dividerColor: '#e9c069',
+    dividerWidth: 2.5,
+    bulbOnColor: '#ffe9a8',
+    bulbOffColor: '#7a4030',
+    bulbGlowColor: '#ffe9a8',
+    hubOuterFill: '#1c0010',
+    hubInnerFill: '#fffdf5',
+    hubInnerStroke: '#caa24a',
+    previewColors: ['#1a0008', '#fff7e2', '#c8415e'],
+  },
   standard: {
     key: 'standard',
     name: '일반',
@@ -62,26 +82,6 @@ export const WHEEL_THEMES: Record<ThemeKey, WheelThemeConfig> = {
     hubInnerFill: '#fffdf5',
     hubInnerStroke: '#F2D870',
     previewColors: ['#1e1030', '#A080E0', '#F0C030'],
-  },
-  burgundy_cream: {
-    key: 'burgundy_cream',
-    name: '버건디 크림',
-    rimFill: '#1a0008',
-    rimRingColor: '#caa24a',
-    useCustomSegColors: false,
-    segEvenFill: '#fff7e2',
-    segOddFill: '#c8415e',
-    segEvenText: '#c0243f',
-    segOddText: '#fffbe8',
-    dividerColor: '#e9c069',
-    dividerWidth: 2.5,
-    bulbOnColor: '#ffe9a8',
-    bulbOffColor: '#7a4030',
-    bulbGlowColor: '#ffe9a8',
-    hubOuterFill: '#1c0010',
-    hubInnerFill: '#fffdf5',
-    hubInnerStroke: '#caa24a',
-    previewColors: ['#1a0008', '#fff7e2', '#c8415e'],
   },
   sapphire_platinum: {
     key: 'sapphire_platinum',
@@ -129,7 +129,7 @@ export const THEME_STORAGE_KEY = 'wheel_theme'
 
 export function getSavedTheme(): ThemeKey {
   if (typeof window === 'undefined') return 'standard'
-  return (localStorage.getItem(THEME_STORAGE_KEY) as ThemeKey) ?? 'standard'
+  return (localStorage.getItem(THEME_STORAGE_KEY) as ThemeKey) ?? 'burgundy_cream'
 }
 
 export function saveTheme(key: ThemeKey) {

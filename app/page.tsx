@@ -1,100 +1,189 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import RouletteWheel from '@/components/RouletteWheel'
-import FireworksBackground from '@/components/FireworksBackground'
-import { Prize } from '@/types'
+import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import ColorfulFireworksBackground from '@/components/ColorfulFireworksBackground'
+import SparklesOverlay from '@/components/SparklesOverlay'
 
-export default function Home() {
-  const [prizes, setPrizes] = useState<Prize[]>([])
-  const [loading, setLoading] = useState(true)
-  const [isFullscreen, setIsFullscreen] = useState(false)
 
-  const fetchPrizes = useCallback(async () => {
-    try {
-      const res = await fetch('/api/prizes')
-      const data = await res.json()
-      setPrizes(data)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+function playChime() {
+  const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+  if (!AudioCtx) return
+  const ctx = new AudioCtx()
 
-  useEffect(() => { fetchPrizes() }, [fetchPrizes])
+  const notes = [523, 659, 784, 1047]
+  notes.forEach((freq, i) => {
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.08)
+    gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.08)
+    gain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + i * 0.08 + 0.02)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.08 + 0.35)
+    osc.start(ctx.currentTime + i * 0.08)
+    osc.stop(ctx.currentTime + i * 0.08 + 0.4)
+  })
+}
 
-  useEffect(() => {
-    const onChange = () => setIsFullscreen(!!document.fullscreenElement)
-    document.addEventListener('fullscreenchange', onChange)
-    return () => document.removeEventListener('fullscreenchange', onChange)
-  }, [])
-
-  const toggleFullscreen = async () => {
-    if (!document.fullscreenElement) {
-      await document.documentElement.requestFullscreen()
-      try {
-        const ori = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> }
-        await ori.lock?.(screen.orientation.type)
-      } catch {}
-    } else {
-      try { (screen.orientation as ScreenOrientation & { unlock?: () => void }).unlock?.() } catch {}
-      document.exitFullscreen()
-    }
-  }
+export default function LandingPage() {
+  const router = useRouter()
 
   return (
     <div
-      className="relative min-h-screen overflow-hidden"
       style={{
+        position: 'relative',
+        minHeight: '100vh',
+        overflow: 'hidden',
         background: 'radial-gradient(130% 100% at 50% 0%, #3a1d52 0%, #2a1342 38%, #1a0d2e 72%, #0d0719 100%)',
         fontFamily: "'Noto Sans KR', sans-serif",
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
       }}
     >
-      {/* 폭죽 캔버스 */}
-      <FireworksBackground />
+      {/* 레이어 0: 컬러 폭죽 */}
+      <ColorfulFireworksBackground />
 
-      {/* 보라 비네트 오버레이 */}
+      {/* 레이어 1: 십자 반짝이 */}
+      <SparklesOverlay />
+
+      {/* 레이어 1: 콘텐츠 */}
       <div
-        className="absolute inset-0 pointer-events-none"
         style={{
-          zIndex: 1,
-          background: 'radial-gradient(70% 55% at 50% 42%, rgba(122,70,160,.35), transparent 70%)',
+          position: 'relative',
+          zIndex: 2,
+          width: '100%',
+          maxWidth: 440,
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '0 28px',
         }}
-      />
-
-      {/* 콘텐츠 */}
-      <div
-        className="relative flex flex-col items-center justify-center min-h-screen px-5 py-8"
-        style={{ zIndex: 2 }}
       >
-        {/* 헤드라인 */}
-        <div
-          className="flex items-center gap-3 mb-1 cursor-pointer select-none"
-          onClick={toggleFullscreen}
-          title={isFullscreen ? '전체화면 해제' : '전체화면'}
-        >
-          <span style={{
-            fontSize: 42, lineHeight: 1,
-            display: 'inline-block',
-            transform: 'translateY(-12px)',
-            filter: 'drop-shadow(0 0 10px rgba(245,200,90,.8))',
-            animation: 'fukPulse 2.6s ease-in-out infinite',
-          }}>⛳</span>
-          <span style={{
-            fontFamily: "'Black Han Sans', sans-serif",
-            fontSize: 42, lineHeight: 1,
-            verticalAlign: 'middle',
-            color: '#fff',
-            textShadow: '0 2px 6px rgba(0,0,0,.55)',
-          }}>이벤트 추첨</span>
+        {/* 로고 영역 */}
+        <div style={{ paddingTop: 44, display: 'flex', justifyContent: 'center' }}>
+          <Image
+            src="/logo.png"
+            alt="월송CC점 GOLFZONPARK"
+            width={260}
+            height={80}
+            style={{ objectFit: 'contain', width: '60%', height: 'auto' }}
+            priority
+          />
         </div>
 
-        {loading ? (
-          <div className="text-white text-xl animate-pulse">불러오는 중…</div>
-        ) : prizes.length === 0 ? (
-          <div style={{ color: '#f4c64a', fontSize: 18 }}>등록된 상품이 없습니다.</div>
-        ) : (
-          <RouletteWheel prizes={prizes} onSpinComplete={fetchPrizes} />
-        )}
+        {/* 메인 콘텐츠 */}
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingBottom: 12,
+          }}
+        >
+          {/* 헤드라인: 날마다 福 */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, lineHeight: 1 }}>
+            <span
+              style={{
+                color: '#ffffff',
+                fontSize: 32,
+                fontWeight: 800,
+                letterSpacing: '-0.01em',
+                textShadow: '0 2px 10px rgba(0,0,0,0.65)',
+              }}
+            >
+              날마다
+            </span>
+            <span
+              style={{
+                color: '#f5c832',
+                fontSize: 92,
+                fontWeight: 900,
+                lineHeight: 1,
+                fontFamily: "'Noto Serif KR', serif",
+                textShadow: '0 0 22px rgba(245,200,90,0.75), 0 2px 6px rgba(0,0,0,0.55)',
+                animation: 'fukPulse 2.6s ease-in-out infinite',
+                display: 'inline-block',
+                transform: 'translateY(-10px)',
+              }}
+            >
+              福
+            </span>
+          </div>
+
+          {/* 헤드라인 2줄: 나눔 이벤트 */}
+          <div
+            style={{
+              color: '#ffffff',
+              fontSize: 32,
+              fontWeight: 800,
+              letterSpacing: '-0.01em',
+              textShadow: '0 2px 10px rgba(0,0,0,0.65)',
+              marginTop: 6,
+              textAlign: 'center',
+            }}
+          >
+            나눔 이벤트
+          </div>
+
+          {/* 서브타이틀 */}
+          <div
+            style={{
+              color: 'rgba(255,255,255,0.88)',
+              fontSize: 15,
+              fontWeight: 400,
+              letterSpacing: '0.02em',
+              marginTop: 22,
+              textAlign: 'center',
+              textShadow: '0 1px 6px rgba(0,0,0,0.5)',
+            }}
+          >
+            오늘의 행운을 돌려보세요!
+          </div>
+        </div>
+
+        {/* CTA 버튼 */}
+        <div style={{ paddingBottom: 56, display: 'flex', justifyContent: 'center' }}>
+          <button
+            onClick={() => { playChime(); setTimeout(() => router.push('/roulette'), 350) }}
+            style={{
+              width: '75%',
+              padding: '17px 20px',
+              background: 'linear-gradient(180deg,#fbe08a,#f2bd3e 48%,#e29a1b)',
+              borderRadius: 56,
+              border: '2.5px solid #f5c832',
+              boxShadow: '0 0 0 1px #c07812, 0 0 14px 3px rgba(245,200,50,0.5)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10,
+              fontSize: 20,
+              fontWeight: 800,
+              color: '#1a0800',
+              fontFamily: "'Noto Sans KR', sans-serif",
+              letterSpacing: '-0.01em',
+              animation: 'btnGlow 2s ease-in-out infinite',
+              WebkitTapHighlightColor: 'transparent',
+            }}
+          >
+            <span>이벤트 참여하기</span>
+            <span
+              style={{
+                fontSize: 24,
+                fontWeight: 900,
+                animation: 'arrowNudge 1.4s ease-in-out infinite',
+                display: 'inline-block',
+              }}
+            >
+              ›
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   )

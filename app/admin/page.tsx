@@ -34,7 +34,7 @@ export default function AdminDashboard() {
   // 확률 인라인 편집용 state
   const [probInputs, setProbInputs] = useState<Record<number, string>>({})
   const [savingProb, setSavingProb] = useState(false)
-  const [selectedTheme, setSelectedTheme] = useState<ThemeKey>('standard')
+  const [selectedTheme, setSelectedTheme] = useState<ThemeKey>('burgundy_cream')
 
   // 일별 통계
   const [dailyStats, setDailyStats] = useState<{
