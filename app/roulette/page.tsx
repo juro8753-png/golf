@@ -63,7 +63,7 @@ export default function Home() {
       />
 
       <div
-        className="relative flex flex-col items-center justify-center min-h-screen px-5 py-8 logo-mobile-pt"
+        className="relative flex flex-col items-center justify-center min-h-screen px-5 py-8 logo-mobile-pt roulette-center-mobile"
         style={{ zIndex: 2 }}
       >
         <div

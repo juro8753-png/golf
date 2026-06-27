@@ -100,15 +100,9 @@ html, body {
     height: auto !important;
   }
   .logo-mobile-pt {
-    padding-top: 106px;
+    padding-top: 78px;
   }
-  .landing-outer-mobile {
-    justify-content: flex-start !important;
-  }
-  .landing-subtitle-gap {
-    margin-top: 14px !important;
-  }
-  .landing-btn-gap {
-    margin-top: 28px !important;
+  .roulette-center-mobile {
+    padding-bottom: 78px !important;
   }
 }

@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import ColorfulFireworksBackground from '@/components/ColorfulFireworksBackground'
 import SparklesOverlay from '@/components/SparklesOverlay'
 
@@ -29,6 +30,26 @@ function playChime() {
 
 export default function LandingPage() {
   const router = useRouter()
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', onChange)
+    return () => document.removeEventListener('fullscreenchange', onChange)
+  }, [])
+
+  const toggleFullscreen = async () => {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen()
+      try {
+        const ori = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> }
+        await ori.lock?.(screen.orientation.type)
+      } catch {}
+    } else {
+      try { (screen.orientation as ScreenOrientation & { unlock?: () => void }).unlock?.() } catch {}
+      document.exitFullscreen()
+    }
+  }
 
   return (
     <div
@@ -51,7 +72,6 @@ export default function LandingPage() {
 
       {/* 레이어 1: 콘텐츠 */}
       <div
-        className="landing-outer-mobile"
         style={{
           position: 'relative',
           zIndex: 2,
@@ -67,7 +87,12 @@ export default function LandingPage() {
       >
         <div className="logo-mobile-pt" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0, width: '100%' }}>
           {/* 로고 영역 */}
-          <div className="logo-fixed-mobile" style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+          <div
+            className="logo-fixed-mobile"
+            onClick={toggleFullscreen}
+            title={isFullscreen ? '전체화면 해제' : '전체화면'}
+            style={{ display: 'flex', justifyContent: 'center', marginBottom: 24, cursor: 'pointer' }}
+          >
             <Image
               src="/logo.png"
               alt="월송CC점 GOLFZONPARK"
@@ -125,7 +150,6 @@ export default function LandingPage() {
 
           {/* 서브타이틀 */}
           <div
-            className="landing-subtitle-gap"
             style={{
               color: 'rgba(255,255,255,0.88)',
               fontSize: 15,
@@ -140,7 +164,7 @@ export default function LandingPage() {
           </div>
 
           {/* CTA 버튼 */}
-          <div className="landing-btn-gap" style={{ marginTop: 36, display: 'flex', justifyContent: 'center', width: '100%' }}>
+          <div style={{ marginTop: 36, display: 'flex', justifyContent: 'center', width: '100%' }}>
             <button
               onClick={() => { playChime(); setTimeout(() => router.push('/roulette'), 350) }}
               style={{
