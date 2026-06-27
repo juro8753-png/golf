@@ -110,6 +110,6 @@ html, body {
   }
   .landing-center-mobile {
     justify-content: flex-start !important;
-    padding-top: 100px !important;
+    padding-top: 200px !important;
   }
 }
