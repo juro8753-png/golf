@@ -93,19 +93,19 @@ html, body {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 14px 0 12px;
+    padding: 20px 0 12px;
   }
   .logo-fixed-mobile img {
     width: 150px !important;
     height: auto !important;
   }
   .logo-mobile-pt {
-    padding-top: 78px !important;
+    padding-top: 62px !important;
   }
   .roulette-center-mobile {
-    padding-bottom: 78px !important;
+    padding-bottom: 62px !important;
   }
   .landing-center-mobile {
-    padding-top: 78px !important;
+    padding-top: 62px !important;
   }
 }
