@@ -59,32 +59,24 @@ export default function LandingPage() {
           minHeight: '100vh',
           display: 'flex',
           flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
           padding: '0 28px',
         }}
       >
-        {/* 로고 영역 */}
-        <div style={{ paddingTop: 44, display: 'flex', justifyContent: 'center' }}>
-          <Image
-            src="/logo.png"
-            alt="월송CC점 GOLFZONPARK"
-            width={260}
-            height={80}
-            style={{ objectFit: 'contain', width: '60%', height: 'auto' }}
-            priority
-          />
-        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0, width: '100%' }}>
+          {/* 로고 영역 */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+            <Image
+              src="/logo.png"
+              alt="월송CC점 GOLFZONPARK"
+              width={260}
+              height={80}
+              style={{ objectFit: 'contain', width: '60%', height: 'auto' }}
+              priority
+            />
+          </div>
 
-        {/* 메인 콘텐츠 */}
-        <div
-          style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            paddingBottom: 12,
-          }}
-        >
           {/* 헤드라인: 날마다 福 */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, lineHeight: 1 }}>
             <span
@@ -144,45 +136,45 @@ export default function LandingPage() {
           >
             오늘의 행운을 돌려보세요!
           </div>
-        </div>
 
-        {/* CTA 버튼 */}
-        <div style={{ paddingBottom: 56, display: 'flex', justifyContent: 'center' }}>
-          <button
-            onClick={() => { playChime(); setTimeout(() => router.push('/roulette'), 350) }}
-            style={{
-              width: '75%',
-              padding: '17px 20px',
-              background: 'linear-gradient(180deg,#fbe08a,#f2bd3e 48%,#e29a1b)',
-              borderRadius: 56,
-              border: '2.5px solid #f5c832',
-              boxShadow: '0 0 0 1px #c07812, 0 0 14px 3px rgba(245,200,50,0.5)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 10,
-              fontSize: 20,
-              fontWeight: 800,
-              color: '#1a0800',
-              fontFamily: "'Noto Sans KR', sans-serif",
-              letterSpacing: '-0.01em',
-              animation: 'btnGlow 2s ease-in-out infinite',
-              WebkitTapHighlightColor: 'transparent',
-            }}
-          >
-            <span>이벤트 참여하기</span>
-            <span
+          {/* CTA 버튼 */}
+          <div style={{ marginTop: 36, display: 'flex', justifyContent: 'center', width: '100%' }}>
+            <button
+              onClick={() => { playChime(); setTimeout(() => router.push('/roulette'), 350) }}
               style={{
-                fontSize: 24,
-                fontWeight: 900,
-                animation: 'arrowNudge 1.4s ease-in-out infinite',
-                display: 'inline-block',
+                width: '75%',
+                padding: '17px 20px',
+                background: 'linear-gradient(180deg,#fbe08a,#f2bd3e 48%,#e29a1b)',
+                borderRadius: 56,
+                border: '2.5px solid #f5c832',
+                boxShadow: '0 0 0 1px #c07812, 0 0 14px 3px rgba(245,200,50,0.5)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 10,
+                fontSize: 20,
+                fontWeight: 800,
+                color: '#1a0800',
+                fontFamily: "'Noto Sans KR', sans-serif",
+                letterSpacing: '-0.01em',
+                animation: 'btnGlow 2s ease-in-out infinite',
+                WebkitTapHighlightColor: 'transparent',
               }}
             >
-              ›
-            </span>
-          </button>
+              <span>이벤트 참여하기</span>
+              <span
+                style={{
+                  fontSize: 24,
+                  fontWeight: 900,
+                  animation: 'arrowNudge 1.4s ease-in-out infinite',
+                  display: 'inline-block',
+                }}
+              >
+                ›
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

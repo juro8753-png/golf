@@ -37,7 +37,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
   const [result, setResult] = useState<SpinResponse | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
-  const [theme, setTheme] = useState<WheelThemeConfig>(WHEEL_THEMES.standard)
+  const [theme, setTheme] = useState<WheelThemeConfig>(WHEEL_THEMES.burgundy_cream)
   const router = useRouter()
 
   // 테마 변경 감지
