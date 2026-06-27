@@ -100,12 +100,16 @@ html, body {
     height: auto !important;
   }
   .logo-mobile-pt {
-    padding-top: 40px !important;
+    justify-content: flex-start !important;
+    padding-top: 100px !important;
+    padding-bottom: 0 !important;
   }
   .roulette-center-mobile {
-    padding-bottom: 56px !important;
+    justify-content: flex-start !important;
+    padding-bottom: 0 !important;
   }
   .landing-center-mobile {
-    padding-top: 40px !important;
+    justify-content: flex-start !important;
+    padding-top: 100px !important;
   }
 }
