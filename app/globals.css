@@ -81,3 +81,34 @@ html, body {
 .modal-bounce-in  { animation: modal-bounce-in 0.65s cubic-bezier(0.175,0.885,0.32,1.275) forwards; }
 .win-glow         { animation: win-glow 1.6s ease-in-out infinite; }
 .consolation-shake { animation: consolation-shake 0.55s ease-in-out forwards; }
+
+/* ── 모바일 상단 고정 로고 ── */
+@media (max-width: 767px) {
+  .logo-fixed-mobile {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 14px 0 12px;
+  }
+  .logo-fixed-mobile img {
+    width: 150px !important;
+    height: auto !important;
+  }
+  .logo-mobile-pt {
+    padding-top: 106px;
+  }
+  .landing-outer-mobile {
+    justify-content: flex-start !important;
+  }
+  .landing-subtitle-gap {
+    margin-top: 14px !important;
+  }
+  .landing-btn-gap {
+    margin-top: 28px !important;
+  }
+}

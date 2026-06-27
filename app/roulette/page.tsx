@@ -63,11 +63,11 @@ export default function Home() {
       />
 
       <div
-        className="relative flex flex-col items-center justify-center min-h-screen px-5 py-8"
+        className="relative flex flex-col items-center justify-center min-h-screen px-5 py-8 logo-mobile-pt"
         style={{ zIndex: 2 }}
       >
         <div
-          className="cursor-pointer select-none mb-1"
+          className="logo-fixed-mobile cursor-pointer select-none mb-1"
           onClick={toggleFullscreen}
           title={isFullscreen ? '전체화면 해제' : '전체화면'}
         >

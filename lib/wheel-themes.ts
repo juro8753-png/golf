@@ -128,7 +128,7 @@ export const WHEEL_THEMES: Record<ThemeKey, WheelThemeConfig> = {
 export const THEME_STORAGE_KEY = 'wheel_theme'
 
 export function getSavedTheme(): ThemeKey {
-  if (typeof window === 'undefined') return 'standard'
+  if (typeof window === 'undefined') return 'burgundy_cream'
   return (localStorage.getItem(THEME_STORAGE_KEY) as ThemeKey) ?? 'burgundy_cream'
 }
 
