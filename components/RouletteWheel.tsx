@@ -5,6 +5,11 @@ import { useRouter } from 'next/navigation'
 import { Prize, SpinResponse } from '@/types'
 import { soundEngine } from '@/lib/sounds'
 import { getSavedTheme, WHEEL_THEMES, THEME_STORAGE_KEY, type WheelThemeConfig } from '@/lib/wheel-themes'
+import { getEffectiveLimit, LIMITS_STORAGE_KEY } from '@/lib/daily-limits'
+
+function getKSTToday(): string {
+  return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10)
+}
 
 interface Props {
   prizes: Prize[]
@@ -38,6 +43,9 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
   const [showModal, setShowModal] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
   const [theme, setTheme] = useState<WheelThemeConfig>(WHEEL_THEMES.burgundy_cream)
+  const [todayCount, setTodayCount] = useState(0)
+  const [limitToast, setLimitToast] = useState(false)
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout>>()
   const router = useRouter()
 
   // 테마 변경 감지
@@ -48,6 +56,14 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
     }
     window.addEventListener('storage', onStorage)
     return () => window.removeEventListener('storage', onStorage)
+  }, [])
+
+  // 오늘 참여 횟수 조회
+  useEffect(() => {
+    fetch('/api/today-count')
+      .then(r => r.json())
+      .then(data => setTodayCount(data.count ?? 0))
+      .catch(() => {})
   }, [])
 
   const drawWheel = useCallback(
@@ -261,6 +277,16 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
 
   const spin = async () => {
     if (spinning || prizes.length === 0) return
+
+    const limit = getEffectiveLimit(getKSTToday())
+    if (limit !== null && todayCount >= limit) {
+      setLimitToast(false)
+      requestAnimationFrame(() => setLimitToast(true))
+      clearTimeout(toastTimerRef.current)
+      toastTimerRef.current = setTimeout(() => setLimitToast(false), 2500)
+      return
+    }
+
     setSpinning(true)
     setShowModal(false)
 
@@ -336,6 +362,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
           soundEngine.winNormal()
         }
         if (!spinResponse.prize.is_consolation) startConfetti()
+        setTodayCount(c => c + 1)
         onSpinComplete()
       }
     }
@@ -435,6 +462,31 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
           )}
         </span>
       </button>
+
+      {/* 참여 횟수 소진 토스트 */}
+      {limitToast && (
+        <div
+          className="limit-toast"
+          style={{
+            position: 'fixed',
+            left: '50%',
+            bottom: '180px',
+            zIndex: 300,
+            background: 'rgba(20,20,20,0.93)',
+            color: 'white',
+            padding: '16px 28px',
+            borderRadius: '20px',
+            fontSize: '17px',
+            fontWeight: 800,
+            letterSpacing: '.3px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.55)',
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+          }}
+        >
+          ⛔ 당일 참여 횟수가 소진되었습니다
+        </div>
+      )}
 
       {/* 결과 모달 */}
       {showModal && result && (

@@ -82,6 +82,14 @@ html, body {
 .win-glow         { animation: win-glow 1.6s ease-in-out infinite; }
 .consolation-shake { animation: consolation-shake 0.55s ease-in-out forwards; }
 
+@keyframes limitToastAnim {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  15%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+  75%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+}
+.limit-toast { animation: limitToastAnim 2.5s ease-in-out forwards; }
+
 /* ── 모바일 상단 고정 로고 ── */
 @media (max-width: 767px) {
   .logo-fixed-mobile {

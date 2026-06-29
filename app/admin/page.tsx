@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { AdminStats, Prize } from '@/types'
 import { WHEEL_THEMES, getSavedTheme, saveTheme, type ThemeKey } from '@/lib/wheel-themes'
+import DailyLimitCalendar from '@/components/DailyLimitCalendar'
 
 const COLORS = [
   '#AAAAAA', '#FFD700', '#FF6384', '#36A2EB',
@@ -344,6 +345,9 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {/* 일별 참여 제한 달력 */}
+      <DailyLimitCalendar />
 
       {/* 룰렛 디자인 선택 */}
       <div className="space-y-3">
