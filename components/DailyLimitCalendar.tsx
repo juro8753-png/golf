@@ -84,6 +84,15 @@ export default function DailyLimitCalendar() {
       const days = parseInt(daysInput)
       if (isNaN(days) || days < 1) { setInputError('적용할 일수를 1 이상으로 입력하세요.'); return }
       setDateRangeLimit(selectedDate, days, limit)
+      // 범위가 다음 달로 넘어가면 자동으로 해당 월로 이동
+      const endD = new Date(selectedDate + 'T12:00:00')
+      endD.setDate(endD.getDate() + days - 1)
+      const endYear = endD.getFullYear()
+      const endMonth = endD.getMonth()
+      if (endYear > viewYear || (endYear === viewYear && endMonth > viewMonth)) {
+        setViewYear(endYear)
+        setViewMonth(endMonth)
+      }
     } else {
       if (limit === null) resetAllLimits()
       else setDefaultLimit(limit)
@@ -266,7 +275,7 @@ export default function DailyLimitCalendar() {
                       type="number"
                       min={1}
                       value={daysInput}
-                      onChange={e => { setDaysInput(e.target.value); setInputError('') }}
+                      onChange={e => { setDaysInput(e.target.value); setInputError(''); setApplyMode('week') }}
                       onClick={() => setApplyMode('week')}
                       className="w-14 border border-gray-300 rounded-lg px-2 py-1 text-sm text-center focus:outline-none focus:border-blue-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
