@@ -275,16 +275,14 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         ctx.fillStyle = '#FFFFF0'
         ctx.fill()
 
-        // 가장자리 어두워지는 오버레이
-        const edgeDark = ctx.createRadialGradient(cx, cy, HUB_R * 0.55, cx, cy, HUB_R)
-        edgeDark.addColorStop(0, 'rgba(0,0,0,0)')
-        edgeDark.addColorStop(1, 'rgba(0,0,0,0.18)')
+        // 3번째 링 — 테마 고유색 or 회색
         ctx.beginPath()
-        ctx.arc(cx, cy, HUB_R, 0, 2 * Math.PI)
-        ctx.fillStyle = edgeDark
-        ctx.fill()
+        ctx.arc(cx, cy, HUB_R - 8, 0, 2 * Math.PI)
+        ctx.strokeStyle = th.hubRingColor ?? 'rgba(120,120,120,0.5)'
+        ctx.lineWidth = 3
+        ctx.stroke()
 
-        // 안쪽 테마 대표색 링
+        // 안쪽 테마 대표색 링 (2번째)
         ctx.beginPath()
         ctx.arc(cx, cy, HUB_R - 3, 0, 2 * Math.PI)
         ctx.strokeStyle = th.bulbOnColor

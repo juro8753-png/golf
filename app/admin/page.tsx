@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { AdminStats, Prize } from '@/types'
 import { WHEEL_THEMES, getSavedTheme, saveTheme, type ThemeKey } from '@/lib/wheel-themes'
+import { BG_THEMES, getSavedBg, saveBg, type BgThemeKey, LANDING_BG_KEY, ROULETTE_BG_KEY } from '@/lib/bg-themes'
 import DailyLimitCalendar from '@/components/DailyLimitCalendar'
 
 const emptyForm = {
@@ -31,6 +32,8 @@ export default function AdminDashboard() {
   const [probInputs, setProbInputs] = useState<Record<number, string>>({})
   const [savingProb, setSavingProb] = useState(false)
   const [selectedTheme, setSelectedTheme] = useState<ThemeKey>('burgundy_cream')
+  const [selectedLandingBg, setSelectedLandingBg] = useState<BgThemeKey>('purple_original')
+  const [selectedRouletteBg, setSelectedRouletteBg] = useState<BgThemeKey>('purple_original')
 
   // 일별 통계
   const [dailyStats, setDailyStats] = useState<{
@@ -40,7 +43,11 @@ export default function AdminDashboard() {
   } | null>(null)
   const [showDailyModal, setShowDailyModal] = useState(false)
 
-  useEffect(() => { setSelectedTheme(getSavedTheme()) }, [])
+  useEffect(() => {
+    setSelectedTheme(getSavedTheme())
+    setSelectedLandingBg(getSavedBg(LANDING_BG_KEY))
+    setSelectedRouletteBg(getSavedBg(ROULETTE_BG_KEY))
+  }, [])
 
   const fetchAll = useCallback(async () => {
     setLoading(true)
@@ -342,6 +349,42 @@ export default function AdminDashboard() {
 
       {/* 일별 참여 제한 달력 */}
       <DailyLimitCalendar />
+
+      {/* 배경 색상 선택 */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold text-gray-800">배경 색상</h2>
+        {([
+          { label: '랜딩페이지', selected: selectedLandingBg, storageKey: LANDING_BG_KEY, setter: setSelectedLandingBg },
+          { label: '룰렛페이지', selected: selectedRouletteBg, storageKey: ROULETTE_BG_KEY, setter: setSelectedRouletteBg },
+        ] as const).map(({ label, selected, storageKey, setter }) => (
+          <div key={label} className="space-y-2">
+            <p className="text-sm font-semibold text-gray-600">{label}</p>
+            <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+              {Object.values(BG_THEMES).map(bg => {
+                const isSelected = selected === bg.key
+                return (
+                  <button
+                    key={bg.key}
+                    onClick={() => { saveBg(storageKey, bg.key); setter(bg.key) }}
+                    className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all shrink-0 ${
+                      isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-400 bg-white'
+                    }`}
+                  >
+                    <div
+                      className="w-16 h-10 rounded-lg"
+                      style={{ background: bg.gradient }}
+                    />
+                    <span className={`text-xs font-bold ${isSelected ? 'text-blue-600' : 'text-gray-600'}`}>
+                      {bg.name}
+                    </span>
+                    {isSelected && <span className="text-xs text-blue-400">✓ 적용중</span>}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
 
       {/* 룰렛 디자인 선택 */}
       <div className="space-y-3">

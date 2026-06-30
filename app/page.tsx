@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import ColorfulFireworksBackground from '@/components/ColorfulFireworksBackground'
 import SparklesOverlay from '@/components/SparklesOverlay'
 import { soundEngine } from '@/lib/sounds'
+import { BG_THEMES, getSavedBg, LANDING_BG_KEY } from '@/lib/bg-themes'
 
 
 function playChime() {
@@ -32,8 +33,10 @@ function playChime() {
 export default function LandingPage() {
   const router = useRouter()
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [bgGradient, setBgGradient] = useState(BG_THEMES.purple_original.gradient)
 
   useEffect(() => {
+    setBgGradient(BG_THEMES[getSavedBg(LANDING_BG_KEY)].gradient)
     const onChange = () => setIsFullscreen(!!document.fullscreenElement)
     document.addEventListener('fullscreenchange', onChange)
     return () => document.removeEventListener('fullscreenchange', onChange)
@@ -58,7 +61,7 @@ export default function LandingPage() {
         position: 'relative',
         minHeight: '100vh',
         overflow: 'hidden',
-        background: 'radial-gradient(130% 100% at 50% 0%, #3a1d52 0%, #2a1342 38%, #1a0d2e 72%, #0d0719 100%)',
+        background: bgGradient,
         fontFamily: "'Noto Sans KR', sans-serif",
         display: 'flex',
         flexDirection: 'column',

@@ -7,11 +7,13 @@ import FireworksBackground from '@/components/FireworksBackground'
 import SparklesOverlay from '@/components/SparklesOverlay'
 import SunRaysEffect from '@/components/SunRaysEffect'
 import { Prize } from '@/types'
+import { BG_THEMES, getSavedBg, ROULETTE_BG_KEY } from '@/lib/bg-themes'
 
 export default function Home() {
   const [prizes, setPrizes] = useState<Prize[]>([])
   const [loading, setLoading] = useState(true)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [bgGradient, setBgGradient] = useState(BG_THEMES.purple_original.gradient)
 
   const fetchPrizes = useCallback(async () => {
     try {
@@ -24,6 +26,7 @@ export default function Home() {
   }, [])
 
   useEffect(() => { fetchPrizes() }, [fetchPrizes])
+  useEffect(() => { setBgGradient(BG_THEMES[getSavedBg(ROULETTE_BG_KEY)].gradient) }, [])
 
   useEffect(() => {
     const onChange = () => setIsFullscreen(!!document.fullscreenElement)
@@ -48,7 +51,7 @@ export default function Home() {
     <div
       className="relative min-h-screen overflow-hidden"
       style={{
-        background: 'radial-gradient(130% 100% at 50% 0%, #3a1d52 0%, #2a1342 38%, #1a0d2e 72%, #0d0719 100%)',
+        background: bgGradient,
         fontFamily: "'Noto Sans KR', sans-serif",
       }}
     >

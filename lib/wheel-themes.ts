@@ -25,6 +25,8 @@ export interface WheelThemeConfig {
   hubOuterFill: string
   hubInnerFill: string
   hubInnerStroke: string
+  hubTintColor?: string
+  hubRingColor?: string
   // 미리보기용 색상
   previewColors: [string, string, string]
 }
@@ -53,6 +55,8 @@ export const WHEEL_THEMES: Record<ThemeKey, WheelThemeConfig> = {
     hubOuterFill: '#1c0010',
     hubInnerFill: '#fffdf5',
     hubInnerStroke: '#caa24a',
+    hubTintColor: 'rgba(180, 30, 60, 0.32)',
+    hubRingColor: '#c8415e',
     previewColors: ['#1a0008', '#fff7e2', '#c8415e'],
   },
   standard: {
@@ -118,6 +122,8 @@ export const WHEEL_THEMES: Record<ThemeKey, WheelThemeConfig> = {
     hubOuterFill: '#10131c',
     hubInnerFill: '#ffffff',
     hubInnerStroke: '#9db6d6',
+    hubTintColor: 'rgba(40, 100, 210, 0.32)',
+    hubRingColor: '#2f6fd6',
     previewColors: ['#0c1a36', '#2f6fd6', '#eaf1fb'],
   },
   emerald_ivory: {
@@ -138,6 +144,8 @@ export const WHEEL_THEMES: Record<ThemeKey, WheelThemeConfig> = {
     hubOuterFill: '#10131c',
     hubInnerFill: '#fffdf5',
     hubInnerStroke: '#caa24a',
+    hubTintColor: 'rgba(20, 110, 65, 0.32)',
+    hubRingColor: '#1f7a52',
     previewColors: ['#0a2519', '#1f7a52', '#f7f0d8'],
   },
   fortune_gold: {
