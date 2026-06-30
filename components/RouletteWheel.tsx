@@ -379,7 +379,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
       // 전체 휠 하이라이트 (타원 궤도 공전 — 구형 빛 반사 느낌)
       {
         const now = Date.now() / 1000
-        const t = now * (Math.PI * 2) / 2.8
+        const t = now * (Math.PI * 2) / 1.8
         // 불규칙: 2차 주파수 진동 추가로 속도/궤도가 살짝 흔들림
         const wobble = Math.sin(now * 1.3 + 0.8) * 0.18
         const glowX = cx + radius * (0.62 + wobble) * Math.cos(t + Math.sin(now * 0.7) * 0.4)
