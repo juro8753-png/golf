@@ -127,8 +127,6 @@ export default function SunRaysEffect() {
           })}
         </defs>
 
-        {/* 1. 휠 뒤 앰비언트 글로우 */}
-        <circle cx={CX} cy={CY} r={345} fill="url(#ambientGlow)"/>
 
 
         {/* 2. 스타버스트 대형 코로나 (블러드 헤일로) */}
