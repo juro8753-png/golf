@@ -269,10 +269,10 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
           ctx.shadowBlur = 0
         }
 
-        // 베이스 채우기 (테마 고유색)
+        // 베이스 채우기 (아이보리 고정)
         ctx.beginPath()
         ctx.arc(cx, cy, HUB_R, 0, 2 * Math.PI)
-        ctx.fillStyle = th.hubInnerFill
+        ctx.fillStyle = '#FFFFF0'
         ctx.fill()
 
         // 가장자리 어두워지는 오버레이
