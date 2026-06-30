@@ -561,7 +561,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
             borderLeft: '13px solid transparent',
             borderRight: '13px solid transparent',
             borderTop: '28px solid #FFD700',
-            filter: 'drop-shadow(0 0 6px rgba(255,200,0,0.9))',
+            animation: 'triGlow 2.2s ease-in-out infinite',
           }} />
         </div>
         <canvas

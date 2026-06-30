@@ -62,6 +62,11 @@ html, body {
   50%     { transform: translateX(4px); }
 }
 
+@keyframes triGlow {
+  0%,100% { filter: drop-shadow(0 0 4px rgba(245,200,90,.55)) drop-shadow(0 0 8px rgba(245,200,90,.3)); }
+  50%     { filter: drop-shadow(0 0 10px rgba(245,200,90,.95)) drop-shadow(0 0 20px rgba(245,200,90,.6)); }
+}
+
 /* ── 기존 모달 키프레임 ── */
 @keyframes modal-bounce-in {
   0%   { transform: scale(0.2) rotate(-6deg); opacity: 0; }
