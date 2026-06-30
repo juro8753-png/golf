@@ -1,4 +1,4 @@
-export type ThemeKey = 'standard' | 'royal_gold' | 'burgundy_cream' | 'sapphire_platinum' | 'emerald_ivory' | 'neon_purple' | 'fortune_gold'
+export type ThemeKey = 'standard' | 'royal_gold' | 'burgundy_cream' | 'sapphire_platinum' | 'emerald_ivory' | 'neon_purple' | 'fortune_gold' | 'fortune_wheel_classic'
 
 export interface WheelThemeConfig {
   key: ThemeKey
@@ -199,6 +199,26 @@ export const WHEEL_THEMES: Record<ThemeKey, WheelThemeConfig> = {
     hubInnerFill: '#e0c0ff',
     hubInnerStroke: '#c040ff',
     previewColors: ['#0e0520', '#0e1878', '#4a0f7a'],
+  },
+  fortune_wheel_classic: {
+    key: 'fortune_wheel_classic',
+    name: '포춘 클래식',
+    rimFill: '#470d0d',
+    rimRingColor: '#c89a36',
+    useCustomSegColors: false,
+    segEvenFill: '#df3a34',
+    segOddFill: '#f3e7ca',
+    segEvenText: '#fdf3df',
+    segOddText: '#c1271f',
+    dividerColor: '#c89a36',
+    dividerWidth: 2.5,
+    bulbOnColor: '#ffc63f',
+    bulbOffColor: '#ffe07a',
+    bulbGlowColor: '#ffc63f',
+    hubOuterFill: '#fdeea4',
+    hubInnerFill: '#f4e2a0',
+    hubInnerStroke: '#c89a36',
+    previewColors: ['#470d0d', '#df3a34', '#f3e7ca'],
   },
 }
 

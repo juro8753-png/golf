@@ -83,6 +83,220 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
 
       ctx.clearRect(0, 0, size, size)
 
+      // ─── fortune_wheel_classic: 100% faithful handoff recreation ───
+      if (th.key === 'fortune_wheel_classic') {
+        // s maps viewBox (Rseg=360, rim=450) → canvas pixels
+        const s = (radius + 14) / 450
+
+        const goldGrad = (x0: number, y0: number, x1: number, y1: number) => {
+          const g = ctx.createLinearGradient(x0, y0, x1, y1)
+          g.addColorStop(0,    '#fbeaa6')
+          g.addColorStop(0.25, '#c89a36')
+          g.addColorStop(0.5,  '#f7e08e')
+          g.addColorStop(0.72, '#a87a26')
+          g.addColorStop(1,    '#f3d97f')
+          return g
+        }
+
+        // 1. Outer gold disc (r=450*s)
+        ctx.beginPath()
+        ctx.arc(cx, cy, 450 * s, 0, Math.PI * 2)
+        ctx.fillStyle = goldGrad(cx - 450 * s, cy - 450 * s, cx + 450 * s, cy + 450 * s)
+        ctx.fill()
+
+        // 2. Dark red rim (r=442*s), radial from (cx, cy-20*s)
+        ctx.beginPath()
+        ctx.arc(cx, cy, 442 * s, 0, Math.PI * 2)
+        const rimR = ctx.createRadialGradient(cx, cy - 20 * s, 0, cx, cy - 20 * s, 450 * s)
+        rimR.addColorStop(0.72, '#a82626')
+        rimR.addColorStop(0.86, '#7a1818')
+        rimR.addColorStop(1,    '#470d0d')
+        ctx.fillStyle = rimR
+        ctx.fill()
+
+        // ── rotation group ──
+        ctx.save()
+        ctx.translate(cx, cy)
+        ctx.rotate(rotation)
+
+        // 3. Segments (alternating red/cream radial gradients)
+        const rGrad = ctx.createRadialGradient(0, -25 * s, 0, 0, -25 * s, 380 * s)
+        rGrad.addColorStop(0,    '#ef564d')
+        rGrad.addColorStop(0.62, '#df3a34')
+        rGrad.addColorStop(1,    '#c4271f')
+        const cGrad = ctx.createRadialGradient(0, -25 * s, 0, 0, -25 * s, 380 * s)
+        cGrad.addColorStop(0,    '#fbf4e0')
+        cGrad.addColorStop(0.62, '#f3e7ca')
+        cGrad.addColorStop(1,    '#e4d1a6')
+
+        prizes.forEach((_, i) => {
+          const start = -Math.PI / 2 - segAngle / 2 + i * segAngle
+          const end   = start + segAngle
+          ctx.beginPath()
+          ctx.moveTo(0, 0)
+          ctx.arc(0, 0, 360 * s, start, end)
+          ctx.closePath()
+          ctx.fillStyle = i % 2 === 0 ? rGrad : cGrad
+          ctx.fill()
+        })
+
+        // 4. Gold divider spokes (from 52*s to 360*s)
+        prizes.forEach((_, i) => {
+          const ea = -Math.PI / 2 - segAngle / 2 + i * segAngle
+          const x1 = Math.cos(ea) * 52 * s, y1 = Math.sin(ea) * 52 * s
+          const x2 = Math.cos(ea) * 360 * s, y2 = Math.sin(ea) * 360 * s
+          ctx.beginPath()
+          ctx.moveTo(x1, y1)
+          ctx.lineTo(x2, y2)
+          ctx.strokeStyle = goldGrad(x1, y1, x2, y2)
+          ctx.lineWidth = 5 * s
+          ctx.lineCap = 'round'
+          ctx.stroke()
+        })
+
+        // 5. Gold ring stroke at r=364*s, width=11*s
+        ctx.beginPath()
+        ctx.arc(0, 0, 364 * s, 0, Math.PI * 2)
+        ctx.strokeStyle = goldGrad(-364 * s, -364 * s, 364 * s, 364 * s)
+        ctx.lineWidth = 11 * s
+        ctx.lineCap = 'butt'
+        ctx.stroke()
+
+        // 6. Labels at r=250*s
+        prizes.forEach((prize, i) => {
+          const start = -Math.PI / 2 - segAngle / 2 + i * segAngle
+          ctx.save()
+          ctx.rotate(start + segAngle / 2)
+          const fontSize = Math.max(12, Math.min(22, 360 * s * 0.14))
+          ctx.font = `bold ${fontSize}px "Apple SD Gothic Neo", "Malgun Gothic", sans-serif`
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'middle'
+          ctx.fillStyle = i % 2 === 0 ? '#fdf3df' : '#c1271f'
+          ctx.fillText(prize.name, 250 * s, 0)
+          ctx.restore()
+        })
+
+        // 7. Bulbs at r=405*s (24 static, alternating lit/unlit)
+        for (let i = 0; i < 24; i++) {
+          const ba = -Math.PI / 2 + (i / 24) * Math.PI * 2
+          const bx = Math.cos(ba) * 405 * s
+          const by = Math.sin(ba) * 405 * s
+          const isLit = i % 2 === 0
+          const br = (isLit ? 13 : 12) * s
+          ctx.beginPath()
+          ctx.arc(bx, by, br, 0, Math.PI * 2)
+          const bg = ctx.createRadialGradient(bx, by, 0, bx, by, br)
+          if (isLit) {
+            bg.addColorStop(0,    '#ffffff')
+            bg.addColorStop(0.45, '#fff0b0')
+            bg.addColorStop(1,    '#ffc63f')
+          } else {
+            bg.addColorStop(0,    '#fffdf2')
+            bg.addColorStop(0.42, '#ffe07a')
+            bg.addColorStop(0.80, '#e8a92e')
+            bg.addColorStop(1,    '#a96d1c')
+          }
+          ctx.fillStyle = bg
+          ctx.fill()
+          ctx.strokeStyle = '#7d4f17'
+          ctx.lineWidth = 1.5
+          ctx.stroke()
+        }
+
+        // 8. Hub (4-layer gold, scaled to r=75*s)
+        {
+          const HR  = 75 * s
+          const bvR = HR * (136 / 150)
+          const spR = HR * (118 / 150)
+          const knR = HR * (110 / 150)
+          const dtR = Math.max(1.5, HR * (9 / 150))
+          const ang = 160 * Math.PI / 180
+
+          ctx.save()
+          ctx.beginPath()
+          ctx.arc(0, 0, HR, 0, Math.PI * 2)
+          ctx.shadowColor = 'rgba(0,0,0,0.45)'
+          ctx.shadowBlur = 14
+          ctx.shadowOffsetY = 5
+          const hOg = ctx.createLinearGradient(
+            -Math.cos(ang) * HR, -Math.sin(ang) * HR,
+             Math.cos(ang) * HR,  Math.sin(ang) * HR
+          )
+          hOg.addColorStop(0, '#fdeea4')
+          hOg.addColorStop(1, '#bb8a30')
+          ctx.fillStyle = hOg
+          ctx.fill()
+          ctx.shadowBlur = 0; ctx.shadowOffsetY = 0
+          ctx.restore()
+
+          ctx.save()
+          ctx.beginPath()
+          ctx.arc(0, 0, bvR, 0, Math.PI * 2)
+          const hBg = ctx.createLinearGradient(0, -bvR, 0, bvR)
+          hBg.addColorStop(0,    '#edc878')
+          hBg.addColorStop(0.52, '#bd8530')
+          hBg.addColorStop(1,    '#7d531a')
+          ctx.fillStyle = hBg
+          ctx.fill()
+          ctx.restore()
+
+          ctx.save()
+          ctx.beginPath()
+          ctx.arc(0, 0, spR, 0, Math.PI * 2)
+          ctx.fillStyle = '#9c7322'
+          ctx.fill()
+          ctx.restore()
+
+          ctx.save()
+          ctx.beginPath()
+          ctx.arc(0, 0, knR, 0, Math.PI * 2)
+          ctx.clip()
+          const hCg = (ctx as unknown as { createConicGradient(s: number, x: number, y: number): CanvasGradient }).createConicGradient(0, 0, 0)
+          hCg.addColorStop(0,        '#f4e2a0')
+          hCg.addColorStop(50 / 360, '#d3a948')
+          hCg.addColorStop(90 / 360, '#b88c33')
+          hCg.addColorStop(130 / 360,'#d3a948')
+          hCg.addColorStop(180 / 360,'#f4e2a0')
+          hCg.addColorStop(230 / 360,'#d3a948')
+          hCg.addColorStop(270 / 360,'#b88c33')
+          hCg.addColorStop(310 / 360,'#d3a948')
+          hCg.addColorStop(1,        '#f4e2a0')
+          ctx.fillStyle = hCg
+          ctx.fillRect(-knR, -knR, knR * 2, knR * 2)
+          ctx.lineWidth = 0.4
+          for (let li = 0; li < 64; li++) {
+            const la = (li / 64) * Math.PI * 2
+            ctx.beginPath()
+            ctx.moveTo(0, 0)
+            ctx.lineTo(Math.cos(la) * knR, Math.sin(la) * knR)
+            ctx.strokeStyle = li % 2 === 0 ? 'rgba(255,255,255,0.15)' : 'rgba(60,40,8,0.10)'
+            ctx.stroke()
+          }
+          const hDm = ctx.createRadialGradient(-knR * 0.2, -knR * 0.34, 0, 0, 0, knR)
+          hDm.addColorStop(0,    'rgba(255,255,255,0.60)')
+          hDm.addColorStop(0.52, 'rgba(255,255,255,0)')
+          ctx.fillStyle = hDm
+          ctx.fillRect(-knR, -knR, knR * 2, knR * 2)
+          const hIn = ctx.createRadialGradient(0, 0, knR * 0.6, 0, 0, knR)
+          hIn.addColorStop(0, 'rgba(90,60,12,0)')
+          hIn.addColorStop(1, 'rgba(90,60,12,0.35)')
+          ctx.fillStyle = hIn
+          ctx.fillRect(-knR, -knR, knR * 2, knR * 2)
+          ctx.restore()
+
+          ctx.beginPath()
+          ctx.arc(0, 0, dtR, 0, Math.PI * 2)
+          const hDd = ctx.createRadialGradient(0, 0, 0, 0, 0, dtR)
+          hDd.addColorStop(0, '#caa23c')
+          hDd.addColorStop(1, '#8a6a1d')
+          ctx.fillStyle = hDd
+          ctx.fill()
+        }
+
+        ctx.restore()  // end rotation
+        return
+      }
+
       // 외부 원형 테두리
       ctx.beginPath()
       ctx.arc(cx, cy, radius + 14, 0, 2 * Math.PI)
