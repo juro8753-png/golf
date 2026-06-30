@@ -190,7 +190,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
 
       // LED 전구 (외부 링)
       const numBulbs = 32
-      const bulbDist = radius + 9
+      const bulbDist = radius + 7
       const phase = Math.floor(Date.now() / 180)
       for (let i = 0; i < numBulbs; i++) {
         const angle = -Math.PI / 2 + (i / numBulbs) * 2 * Math.PI
