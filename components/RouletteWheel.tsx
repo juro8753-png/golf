@@ -124,13 +124,6 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
           ctx.strokeStyle = th.rimRingColor
           ctx.lineWidth = 5
           ctx.stroke()
-          ctx.beginPath()
-          ctx.arc(cx, cy, radius + 6, 0, 2 * Math.PI)
-          ctx.strokeStyle = th.rimRingColor
-          ctx.lineWidth = 1.5
-          ctx.globalAlpha = 0.5
-          ctx.stroke()
-          ctx.globalAlpha = 1
         }
       }
 
@@ -223,73 +216,92 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
       }
       ctx.shadowBlur = 0
 
-      // 타이트 엣지 링 — 캔버스 경계 안쪽에서 rim에 딱 붙은 밝은 링
-      ctx.save()
-      ctx.beginPath()
-      ctx.arc(cx, cy, radius + 14, 0, 2 * Math.PI)
-      ctx.shadowColor = 'rgba(255,255,255,1.0)'
-      ctx.shadowBlur = 14
-      ctx.strokeStyle = 'rgba(255,255,255,0.38)'
-      ctx.lineWidth = 3
-      ctx.stroke()
-      ctx.shadowBlur = 0
-      ctx.restore()
-
       // 중심 원
       if (th.hubPulse) {
         const HUB_R = 22
-        const numSlices = 240
 
-        // 외부 그림자 링
+        // ── 3개 링 구조 (바깥→안) ──
+        // 가장 바깥 다크 베이스
         ctx.beginPath()
-        ctx.arc(cx, cy, HUB_R + 3, 0, 2 * Math.PI)
-        ctx.fillStyle = 'rgba(0,0,0,0.55)'
+        ctx.arc(cx, cy, HUB_R + 8, 0, 2 * Math.PI)
+        ctx.fillStyle = '#2E1A00'
         ctx.fill()
 
-        // 코닉 그라디언트 — 1픽셀씩 색상이 흰→금→갈→금→흰 반복
-        for (let i = 0; i < numSlices; i++) {
-          const a1 = (i / numSlices) * 2 * Math.PI - Math.PI / 2
-          const a2 = ((i + 1.3) / numSlices) * 2 * Math.PI - Math.PI / 2
-          const phase = (i / numSlices) * 2 * Math.PI
-          // 4개 어두운 구간, 밝은 영역을 넓게 (pow 0.38)
-          const base = Math.pow((Math.sin(phase * 4) + 1) / 2, 0.22)
-          // 어두운 구간끼리 깊이를 다르게 — 1.7 주기 간섭파로 불균일하게
-          const vary = Math.sin(phase * 1.7 + 1.1) * 0.15
-          const t = Math.max(0, Math.min(1, base + vary * (1 - base)))
-          // 밝은금(덜어두움) → 순백
-          const r = Math.round(220 + t * (255 - 220))
-          const g = Math.round(175 + t * (255 - 175))
-          const b = Math.round(60  + t * (240 - 60))
-          ctx.beginPath()
-          ctx.moveTo(cx, cy)
-          ctx.arc(cx, cy, HUB_R, a1, a2)
-          ctx.closePath()
-          ctx.fillStyle = `rgb(${r},${g},${b})`
-          ctx.fill()
-        }
-
-        // 가장자리 어두워지는 오버레이 (입체감)
-        const edgeDark = ctx.createRadialGradient(cx, cy, HUB_R * 0.55, cx, cy, HUB_R)
-        edgeDark.addColorStop(0, 'rgba(0,0,0,0)')
-        edgeDark.addColorStop(1, 'rgba(0,0,0,0.15)')
+        // 링 1: 바깥 골드 링
         ctx.beginPath()
-        ctx.arc(cx, cy, HUB_R, 0, 2 * Math.PI)
-        ctx.fillStyle = edgeDark
-        ctx.fill()
+        ctx.arc(cx, cy, HUB_R + 7, 0, 2 * Math.PI)
+        ctx.strokeStyle = '#C89010'
+        ctx.lineWidth = 3
+        ctx.stroke()
 
-        // 외부 골드 테두리
+        // 링 2: 다크 홈 (groove)
         ctx.beginPath()
-        ctx.arc(cx, cy, HUB_R, 0, 2 * Math.PI)
-        ctx.strokeStyle = '#D4A020'
+        ctx.arc(cx, cy, HUB_R + 4, 0, 2 * Math.PI)
+        ctx.strokeStyle = '#5A3800'
+        ctx.lineWidth = 4
+        ctx.stroke()
+
+        // 링 3: 안쪽 골드 링
+        ctx.beginPath()
+        ctx.arc(cx, cy, HUB_R + 1, 0, 2 * Math.PI)
+        ctx.strokeStyle = '#D4A820'
         ctx.lineWidth = 2.5
         ctx.stroke()
 
-        // 안쪽 보조 링
+        // ── 방사형 헤어라인 금속 효과 (선반 가공 스테인리스) ──
+        ctx.save()
         ctx.beginPath()
-        ctx.arc(cx, cy, HUB_R - 3.5, 0, 2 * Math.PI)
-        ctx.strokeStyle = 'rgba(180,120,0,0.5)'
-        ctx.lineWidth = 1
+        ctx.arc(cx, cy, HUB_R, 0, 2 * Math.PI)
+        ctx.clip()
+
+        // ① 황금 베이스
+        ctx.beginPath()
+        ctx.arc(cx, cy, HUB_R, 0, 2 * Math.PI)
+        ctx.fillStyle = '#D4A020'
+        ctx.fill()
+
+        // ② 어두운 선 4개 — 정수 좌표 실선 (두께 고정, 잔상 없음)
+        const DARK_POS = [0, 75, 170, 270].map(d => d * Math.PI / 180)
+        ctx.strokeStyle = 'rgba(60,30,0,0.60)'
+        ctx.lineWidth = 2
+        ctx.lineCap = 'butt'
+        for (const angle of DARK_POS) {
+          ctx.beginPath()
+          ctx.moveTo(
+            Math.round(cx - Math.cos(angle) * HUB_R),
+            Math.round(cy - Math.sin(angle) * HUB_R)
+          )
+          ctx.lineTo(
+            Math.round(cx + Math.cos(angle) * HUB_R),
+            Math.round(cy + Math.sin(angle) * HUB_R)
+          )
+          ctx.stroke()
+        }
+
+        // 중앙 하이라이트 (빛 집중 포인트)
+        const highlight = ctx.createRadialGradient(cx - 4, cy - 6, 0, cx, cy, HUB_R * 0.9)
+        highlight.addColorStop(0,    'rgba(255,255,220,0.55)')
+        highlight.addColorStop(0.30, 'rgba(255,240,160,0.15)')
+        highlight.addColorStop(1,    'rgba(0,0,0,0)')
+        ctx.fillStyle = highlight
+        ctx.fillRect(cx - HUB_R, cy - HUB_R, HUB_R * 2, HUB_R * 2)
+
+        // 가장자리 비네팅
+        const vignette = ctx.createRadialGradient(cx, cy, HUB_R * 0.5, cx, cy, HUB_R)
+        vignette.addColorStop(0, 'rgba(0,0,0,0)')
+        vignette.addColorStop(1, 'rgba(0,0,0,0.22)')
+        ctx.fillStyle = vignette
+        ctx.fillRect(cx - HUB_R, cy - HUB_R, HUB_R * 2, HUB_R * 2)
+
+        ctx.restore()
+
+        // 메인 디스크 테두리
+        ctx.beginPath()
+        ctx.arc(cx, cy, HUB_R, 0, 2 * Math.PI)
+        ctx.strokeStyle = '#B08010'
+        ctx.lineWidth = 1.5
         ctx.stroke()
+
       } else {
         if (th.neonGlow) {
           ctx.beginPath()
@@ -340,45 +352,43 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         ctx.restore()
       }
 
-      // 허브 스파클 — 다중 주파수 합산으로 불규칙한 반짝임
+      // 허브 깜빡임 + 작은 스파클 2개
       {
         const HR  = 22
         const now = Date.now() / 1000
-        // 3개 주파수를 더해 자연스럽고 불규칙한 깜빡임 생성
-        const s = Math.sin(now * 4.3)          * 0.35
-                + Math.sin(now * 7.1 + 1.5)    * 0.25
-                + Math.sin(now * 2.6 + 0.8)    * 0.20
-                + 0.60
-        const alpha = Math.max(0, Math.min(1, s)) * 0.58
+        // 불규칙한 다중 주파수 합산 → 허브 전체 깜빡임
+        const s = Math.sin(now * 3.1)        * 0.40
+                + Math.sin(now * 5.7 + 1.2)  * 0.25
+                + Math.sin(now * 1.8 + 2.4)  * 0.15
+                + 0.55
+        const alpha = Math.max(0, Math.min(1, s)) * 0.55
 
-        // 중심 방사형 흰 글로우 오버레이
         ctx.save()
         ctx.beginPath()
         ctx.arc(cx, cy, HR, 0, 2 * Math.PI)
         ctx.clip()
+
+        // 허브 전체를 덮는 흰 글로우 (가장자리까지 은은하게)
         const rg = ctx.createRadialGradient(cx, cy, 0, cx, cy, HR)
-        rg.addColorStop(0,   `rgba(255,255,255,${alpha.toFixed(3)})`)
-        rg.addColorStop(0.4, `rgba(255,255,220,${(alpha * 0.45).toFixed(3)})`)
-        rg.addColorStop(1,   'rgba(255,255,200,0)')
+        rg.addColorStop(0,    `rgba(255,255,255,${alpha.toFixed(3)})`)
+        rg.addColorStop(0.65, `rgba(255,255,210,${(alpha * 0.65).toFixed(3)})`)
+        rg.addColorStop(1,    `rgba(255,245,160,${(alpha * 0.28).toFixed(3)})`)
         ctx.fillStyle = rg
         ctx.fillRect(cx - HR, cy - HR, HR * 2, HR * 2)
 
-        // 작은 + 스파클 포인트 (각각 다른 주파수로 독립 깜빡임)
-        const SPARKS = [
-          { dx: -7, dy: -6, f: 5.2, ph: 0.0 },
-          { dx:  8, dy:  3, f: 3.7, ph: 1.6 },
-          { dx: -2, dy:  8, f: 6.8, ph: 2.9 },
-          { dx:  6, dy: -7, f: 4.4, ph: 1.0 },
-        ]
+        // 작은 스파클 2개 (독립 주파수로 따로따로 깜빡임)
         ctx.lineCap = 'round'
-        for (const sp of SPARKS) {
+        for (const sp of [
+          { dx: -7, dy: -5, f: 5.2, ph: 0.0 },
+          { dx:  6, dy:  6, f: 4.0, ph: 1.8 },
+        ]) {
           const v = Math.sin(now * sp.f + sp.ph)
-          if (v < 0.55) continue
-          const sa  = (v - 0.55) / 0.45
-          const sz  = 1.2 + sa * 4.0
-          ctx.globalAlpha = sa * 0.90
+          if (v < 0.60) continue
+          const sa = (v - 0.60) / 0.40
+          const sz = 0.8 + sa * 2.5
+          ctx.globalAlpha = sa * 0.85
           ctx.strokeStyle = 'white'
-          ctx.lineWidth   = 1.2
+          ctx.lineWidth   = 1.0
           ctx.beginPath()
           ctx.moveTo(cx + sp.dx - sz, cy + sp.dy)
           ctx.lineTo(cx + sp.dx + sz, cy + sp.dy)
