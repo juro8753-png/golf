@@ -218,10 +218,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
           ctx.shadowColor = 'rgba(0,0,0,0.45)'
           ctx.shadowBlur = 14
           ctx.shadowOffsetY = 5
-          const hOg = ctx.createLinearGradient(
-            -Math.cos(ang) * HR, -Math.sin(ang) * HR,
-             Math.cos(ang) * HR,  Math.sin(ang) * HR
-          )
+          const hOg = ctx.createRadialGradient(0, 0, HR * 0.3, 0, 0, HR)
           hOg.addColorStop(0, '#fdeea4')
           hOg.addColorStop(1, '#bb8a30')
           ctx.fillStyle = hOg
@@ -232,7 +229,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
           ctx.save()
           ctx.beginPath()
           ctx.arc(0, 0, bvR, 0, Math.PI * 2)
-          const hBg = ctx.createLinearGradient(0, -bvR, 0, bvR)
+          const hBg = ctx.createRadialGradient(0, 0, bvR * 0.2, 0, 0, bvR)
           hBg.addColorStop(0,    '#edc878')
           hBg.addColorStop(0.52, '#bd8530')
           hBg.addColorStop(1,    '#7d531a')
