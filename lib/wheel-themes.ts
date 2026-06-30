@@ -133,7 +133,7 @@ export const WHEEL_THEMES: Record<ThemeKey, WheelThemeConfig> = {
   fortune_gold: {
     key: 'fortune_gold',
     name: '포춘 골드',
-    rimFill: '#2a0808',
+    rimFill: '#1a1200',
     rimRingColor: '#D4A520',
     hubPulse: true,
     segGradient: true,
