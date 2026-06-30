@@ -376,29 +376,22 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         ctx.restore()
       }
 
-      // 전체 휠 시인 (허브와 동일한 코사인 왕복 — 원형 클립이 타원 원근감 생성)
+      // 전체 휠 하이라이트 (이동하는 원형 스포트라이트 — 구형 빛 반사 느낌)
       {
-        const CYCLE = 2.8
+        const CYCLE = 3.0
         const pos = Math.cos((Date.now() / 1000) * (Math.PI * 2) / CYCLE)
-        const sweep = cx + radius * 1.25 * pos
-        const BAND = radius * 0.30
-        const angle = 22 * Math.PI / 180
-        const dx = Math.cos(angle)
-        const dy = Math.sin(angle)
+        const glowX = cx + radius * 0.68 * pos
+        const glowY = cy - radius * 0.15
         ctx.save()
         ctx.beginPath()
         ctx.arc(cx, cy, radius, 0, 2 * Math.PI)
         ctx.clip()
-        const sg = ctx.createLinearGradient(
-          sweep - dx * BAND, cy + dy * BAND,
-          sweep + dx * BAND, cy - dy * BAND
-        )
-        sg.addColorStop(0,    'rgba(255,248,210,0)')
-        sg.addColorStop(0.28, 'rgba(255,248,210,0.05)')
-        sg.addColorStop(0.5,  'rgba(255,248,210,0.24)')
-        sg.addColorStop(0.72, 'rgba(255,248,210,0.05)')
-        sg.addColorStop(1,    'rgba(255,248,210,0)')
-        ctx.fillStyle = sg
+        const rg = ctx.createRadialGradient(glowX, glowY, 0, glowX, glowY, radius * 0.70)
+        rg.addColorStop(0,    'rgba(255,252,225,0.30)')
+        rg.addColorStop(0.35, 'rgba(255,252,225,0.14)')
+        rg.addColorStop(0.70, 'rgba(255,252,225,0.04)')
+        rg.addColorStop(1,    'rgba(255,252,225,0)')
+        ctx.fillStyle = rg
         ctx.fillRect(cx - radius - 5, cy - radius - 5, (radius + 5) * 2, (radius + 5) * 2)
         ctx.restore()
       }
