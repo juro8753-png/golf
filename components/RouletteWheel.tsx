@@ -339,6 +339,55 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         ctx.fillRect(cx - GHALF, cy - GHALF, GHALF * 2, GHALF * 2)
         ctx.restore()
       }
+
+      // 허브 스파클 — 다중 주파수 합산으로 불규칙한 반짝임
+      {
+        const HR  = 22
+        const now = Date.now() / 1000
+        // 3개 주파수를 더해 자연스럽고 불규칙한 깜빡임 생성
+        const s = Math.sin(now * 4.3)          * 0.35
+                + Math.sin(now * 7.1 + 1.5)    * 0.25
+                + Math.sin(now * 2.6 + 0.8)    * 0.20
+                + 0.60
+        const alpha = Math.max(0, Math.min(1, s)) * 0.58
+
+        // 중심 방사형 흰 글로우 오버레이
+        ctx.save()
+        ctx.beginPath()
+        ctx.arc(cx, cy, HR, 0, 2 * Math.PI)
+        ctx.clip()
+        const rg = ctx.createRadialGradient(cx, cy, 0, cx, cy, HR)
+        rg.addColorStop(0,   `rgba(255,255,255,${alpha.toFixed(3)})`)
+        rg.addColorStop(0.4, `rgba(255,255,220,${(alpha * 0.45).toFixed(3)})`)
+        rg.addColorStop(1,   'rgba(255,255,200,0)')
+        ctx.fillStyle = rg
+        ctx.fillRect(cx - HR, cy - HR, HR * 2, HR * 2)
+
+        // 작은 + 스파클 포인트 (각각 다른 주파수로 독립 깜빡임)
+        const SPARKS = [
+          { dx: -7, dy: -6, f: 5.2, ph: 0.0 },
+          { dx:  8, dy:  3, f: 3.7, ph: 1.6 },
+          { dx: -2, dy:  8, f: 6.8, ph: 2.9 },
+          { dx:  6, dy: -7, f: 4.4, ph: 1.0 },
+        ]
+        ctx.lineCap = 'round'
+        for (const sp of SPARKS) {
+          const v = Math.sin(now * sp.f + sp.ph)
+          if (v < 0.55) continue
+          const sa  = (v - 0.55) / 0.45
+          const sz  = 1.2 + sa * 4.0
+          ctx.globalAlpha = sa * 0.90
+          ctx.strokeStyle = 'white'
+          ctx.lineWidth   = 1.2
+          ctx.beginPath()
+          ctx.moveTo(cx + sp.dx - sz, cy + sp.dy)
+          ctx.lineTo(cx + sp.dx + sz, cy + sp.dy)
+          ctx.moveTo(cx + sp.dx,      cy + sp.dy - sz)
+          ctx.lineTo(cx + sp.dx,      cy + sp.dy + sz)
+          ctx.stroke()
+        }
+        ctx.restore()
+      }
     },
     [prizes, theme]
   )
