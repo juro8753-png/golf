@@ -42,7 +42,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
   const [result, setResult] = useState<SpinResponse | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
-  const [theme, setTheme] = useState<WheelThemeConfig>(WHEEL_THEMES.burgundy_cream)
+  const [theme, setTheme] = useState<WheelThemeConfig>(WHEEL_THEMES.fortune_gold)
   const [todayCount, setTodayCount] = useState(0)
   const [limitToast, setLimitToast] = useState(false)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout>>()
@@ -89,20 +89,49 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
       ctx.fillStyle = th.rimFill
       ctx.fill()
 
-      // 골드 림 링 (로열골드·버건디 크림)
+      // 림 링
       if (th.rimRingColor !== 'none') {
-        ctx.beginPath()
-        ctx.arc(cx, cy, radius + 14, 0, 2 * Math.PI)
-        ctx.strokeStyle = th.rimRingColor
-        ctx.lineWidth = 5
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.arc(cx, cy, radius + 6, 0, 2 * Math.PI)
-        ctx.strokeStyle = th.rimRingColor
-        ctx.lineWidth = 1.5
-        ctx.globalAlpha = 0.5
-        ctx.stroke()
-        ctx.globalAlpha = 1
+        if (th.neonGlow) {
+          // 네온 멀티 레이어 글로우 링
+          ctx.beginPath()
+          ctx.arc(cx, cy, radius + 14, 0, 2 * Math.PI)
+          ctx.shadowColor = th.rimRingColor
+          ctx.shadowBlur = 50
+          ctx.strokeStyle = th.rimRingColor
+          ctx.lineWidth = 6
+          ctx.stroke()
+
+          ctx.beginPath()
+          ctx.arc(cx, cy, radius + 14, 0, 2 * Math.PI)
+          ctx.shadowColor = '#ff80ff'
+          ctx.shadowBlur = 20
+          ctx.strokeStyle = '#cc60ff'
+          ctx.lineWidth = 3
+          ctx.stroke()
+
+          ctx.beginPath()
+          ctx.arc(cx, cy, radius + 14, 0, 2 * Math.PI)
+          ctx.shadowColor = '#ffffff'
+          ctx.shadowBlur = 8
+          ctx.strokeStyle = 'rgba(255,255,255,0.85)'
+          ctx.lineWidth = 1.2
+          ctx.stroke()
+
+          ctx.shadowBlur = 0
+        } else {
+          ctx.beginPath()
+          ctx.arc(cx, cy, radius + 14, 0, 2 * Math.PI)
+          ctx.strokeStyle = th.rimRingColor
+          ctx.lineWidth = 5
+          ctx.stroke()
+          ctx.beginPath()
+          ctx.arc(cx, cy, radius + 6, 0, 2 * Math.PI)
+          ctx.strokeStyle = th.rimRingColor
+          ctx.lineWidth = 1.5
+          ctx.globalAlpha = 0.5
+          ctx.stroke()
+          ctx.globalAlpha = 1
+        }
       }
 
       // 세그먼트
@@ -125,8 +154,28 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         ctx.moveTo(0, 0)
         ctx.arc(0, 0, radius, startAngle, endAngle)
         ctx.closePath()
-        ctx.fillStyle = segFill
+        if (th.segGradient) {
+          const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, radius)
+          if (i % 2 === 0) {
+            grad.addColorStop(0,    '#FFFFFF')
+            grad.addColorStop(0.7,  '#FFFDF5')
+            grad.addColorStop(0.9,  '#FFF0C0')
+            grad.addColorStop(1,    '#C8A050')
+          } else {
+            grad.addColorStop(0,    '#FF9898')
+            grad.addColorStop(0.7,  '#FF6060')
+            grad.addColorStop(0.9,  '#DD2020')
+            grad.addColorStop(1,    '#8B1010')
+          }
+          ctx.fillStyle = grad
+        } else {
+          ctx.fillStyle = segFill
+        }
         ctx.fill()
+        ctx.beginPath()
+        ctx.moveTo(0, 0)
+        ctx.arc(0, 0, radius, startAngle, endAngle)
+        ctx.closePath()
         ctx.strokeStyle = th.dividerColor
         ctx.lineWidth = th.dividerWidth
         ctx.stroke()
@@ -137,9 +186,9 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         ctx.font = `bold ${fontSize}px "Apple SD Gothic Neo", "Malgun Gothic", sans-serif`
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
+        ctx.shadowBlur = 0
+        ctx.shadowColor = 'transparent'
         ctx.fillStyle = segText
-        ctx.shadowColor = 'rgba(0,0,0,0.6)'
-        ctx.shadowBlur = 4
         ctx.fillText(prize.name, radius * 0.6, 0)
         ctx.restore()
       })
@@ -160,7 +209,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         ctx.arc(bx, by, 4.5, 0, 2 * Math.PI)
         if (isOn) {
           ctx.shadowColor = th.bulbGlowColor
-          ctx.shadowBlur = 16
+          ctx.shadowBlur = th.neonGlow ? 28 : 16
           const grd = ctx.createRadialGradient(bx - 1, by - 1, 0, bx, by, 4.5)
           grd.addColorStop(0, '#FFFFFF')
           grd.addColorStop(0.4, th.bulbOnColor)
@@ -174,19 +223,96 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
       }
       ctx.shadowBlur = 0
 
-      // 중심 원
+      // 타이트 엣지 링 — 캔버스 경계 안쪽에서 rim에 딱 붙은 밝은 링
+      ctx.save()
       ctx.beginPath()
-      ctx.arc(cx, cy, 22, 0, 2 * Math.PI)
-      ctx.fillStyle = th.hubOuterFill
-      ctx.fill()
-      ctx.strokeStyle = th.hubInnerStroke
+      ctx.arc(cx, cy, radius + 14, 0, 2 * Math.PI)
+      ctx.shadowColor = 'rgba(255,255,255,1.0)'
+      ctx.shadowBlur = 14
+      ctx.strokeStyle = 'rgba(255,255,255,0.38)'
       ctx.lineWidth = 3
       ctx.stroke()
+      ctx.shadowBlur = 0
+      ctx.restore()
 
-      ctx.beginPath()
-      ctx.arc(cx, cy, 8, 0, 2 * Math.PI)
-      ctx.fillStyle = th.hubInnerFill
-      ctx.fill()
+      // 중심 원
+      if (th.hubPulse) {
+        const HUB_R = 22
+        const numSlices = 240
+
+        // 외부 그림자 링
+        ctx.beginPath()
+        ctx.arc(cx, cy, HUB_R + 3, 0, 2 * Math.PI)
+        ctx.fillStyle = 'rgba(0,0,0,0.55)'
+        ctx.fill()
+
+        // 코닉 그라디언트 — 1픽셀씩 색상이 흰→금→갈→금→흰 반복
+        for (let i = 0; i < numSlices; i++) {
+          const a1 = (i / numSlices) * 2 * Math.PI - Math.PI / 2
+          const a2 = ((i + 1.3) / numSlices) * 2 * Math.PI - Math.PI / 2
+          const phase = (i / numSlices) * 2 * Math.PI
+          // 4개 어두운 구간, 밝은 영역을 넓게 (pow 0.38)
+          const base = Math.pow((Math.sin(phase * 4) + 1) / 2, 0.22)
+          // 어두운 구간끼리 깊이를 다르게 — 1.7 주기 간섭파로 불균일하게
+          const vary = Math.sin(phase * 1.7 + 1.1) * 0.15
+          const t = Math.max(0, Math.min(1, base + vary * (1 - base)))
+          // 밝은금(덜어두움) → 순백
+          const r = Math.round(220 + t * (255 - 220))
+          const g = Math.round(175 + t * (255 - 175))
+          const b = Math.round(60  + t * (240 - 60))
+          ctx.beginPath()
+          ctx.moveTo(cx, cy)
+          ctx.arc(cx, cy, HUB_R, a1, a2)
+          ctx.closePath()
+          ctx.fillStyle = `rgb(${r},${g},${b})`
+          ctx.fill()
+        }
+
+        // 가장자리 어두워지는 오버레이 (입체감)
+        const edgeDark = ctx.createRadialGradient(cx, cy, HUB_R * 0.55, cx, cy, HUB_R)
+        edgeDark.addColorStop(0, 'rgba(0,0,0,0)')
+        edgeDark.addColorStop(1, 'rgba(0,0,0,0.15)')
+        ctx.beginPath()
+        ctx.arc(cx, cy, HUB_R, 0, 2 * Math.PI)
+        ctx.fillStyle = edgeDark
+        ctx.fill()
+
+        // 외부 골드 테두리
+        ctx.beginPath()
+        ctx.arc(cx, cy, HUB_R, 0, 2 * Math.PI)
+        ctx.strokeStyle = '#D4A020'
+        ctx.lineWidth = 2.5
+        ctx.stroke()
+
+        // 안쪽 보조 링
+        ctx.beginPath()
+        ctx.arc(cx, cy, HUB_R - 3.5, 0, 2 * Math.PI)
+        ctx.strokeStyle = 'rgba(180,120,0,0.5)'
+        ctx.lineWidth = 1
+        ctx.stroke()
+      } else {
+        if (th.neonGlow) {
+          ctx.beginPath()
+          ctx.arc(cx, cy, 24, 0, 2 * Math.PI)
+          ctx.shadowColor = th.hubInnerStroke
+          ctx.shadowBlur = 25
+          ctx.strokeStyle = th.hubInnerStroke
+          ctx.lineWidth = 3
+          ctx.stroke()
+          ctx.shadowBlur = 0
+        }
+        ctx.beginPath()
+        ctx.arc(cx, cy, 22, 0, 2 * Math.PI)
+        ctx.fillStyle = th.hubOuterFill
+        ctx.fill()
+        ctx.strokeStyle = th.hubInnerStroke
+        ctx.lineWidth = 3
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.arc(cx, cy, 8, 0, 2 * Math.PI)
+        ctx.fillStyle = th.hubInnerFill
+        ctx.fill()
+      }
     },
     [prizes, theme]
   )
@@ -393,7 +519,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
             height: 0,
             borderLeft: '17px solid transparent',
             borderRight: '17px solid transparent',
-            borderTop: '34px solid rgba(255,255,255,0.9)',
+            borderTop: '34px solid rgba(180,100,0,0.5)',
           }} />
           <div style={{
             position: 'relative',
@@ -401,8 +527,8 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
             height: 0,
             borderLeft: '13px solid transparent',
             borderRight: '13px solid transparent',
-            borderTop: '28px solid #e63946',
-            filter: 'drop-shadow(0 0 8px rgba(230,57,70,0.85))',
+            borderTop: '28px solid #FFD700',
+            filter: 'drop-shadow(0 0 6px rgba(255,200,0,0.9))',
           }} />
         </div>
         <canvas

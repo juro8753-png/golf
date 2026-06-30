@@ -47,6 +47,11 @@ html, body {
   50%     { box-shadow: 0 0 34px 7px rgba(245,200,90,.9),  inset 0 1px 0 rgba(255,255,255,.5); }
 }
 
+@keyframes btnNeonGlow {
+  0%,100% { box-shadow: 0 0 0 1px #8000cc, 0 0 18px 4px rgba(192,64,255,.7), inset 0 1px 0 rgba(255,255,255,.2); }
+  50%     { box-shadow: 0 0 0 1px #aa00ee, 0 0 38px 12px rgba(224,80,255,1),  inset 0 1px 0 rgba(255,255,255,.35); }
+}
+
 @keyframes sheen {
   0%       { background-position: -160% 0; }
   60%,100% { background-position: 260% 0; }
@@ -81,6 +86,11 @@ html, body {
 .modal-bounce-in  { animation: modal-bounce-in 0.65s cubic-bezier(0.175,0.885,0.32,1.275) forwards; }
 .win-glow         { animation: win-glow 1.6s ease-in-out infinite; }
 .consolation-shake { animation: consolation-shake 0.55s ease-in-out forwards; }
+
+@keyframes sunRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
 
 @keyframes limitToastAnim {
   0%   { opacity: 0; transform: translateX(-50%) translateY(12px); }

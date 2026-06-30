@@ -1,10 +1,17 @@
-export type ThemeKey = 'standard' | 'royal_gold' | 'burgundy_cream' | 'sapphire_platinum' | 'emerald_ivory'
+export type ThemeKey = 'standard' | 'royal_gold' | 'burgundy_cream' | 'sapphire_platinum' | 'emerald_ivory' | 'neon_purple' | 'fortune_gold'
 
 export interface WheelThemeConfig {
   key: ThemeKey
   name: string
   rimFill: string
   rimRingColor: string
+  neonGlow?: boolean
+  hubPulse?: boolean
+  segGradient?: boolean
+  segEvenFillBright?: string
+  segEvenFillDark?: string
+  segOddFillBright?: string
+  segOddFillDark?: string
   useCustomSegColors: boolean
   segEvenFill: string
   segOddFill: string
@@ -123,13 +130,61 @@ export const WHEEL_THEMES: Record<ThemeKey, WheelThemeConfig> = {
     hubInnerStroke: '#caa24a',
     previewColors: ['#0a2519', '#1f7a52', '#f7f0d8'],
   },
+  fortune_gold: {
+    key: 'fortune_gold',
+    name: '포춘 골드',
+    rimFill: '#2a0808',
+    rimRingColor: '#D4A520',
+    hubPulse: true,
+    segGradient: true,
+    segEvenFillBright: '#FFFEF5',
+    segEvenFillDark:   '#B8A070',
+    segOddFillBright:  '#D84040',
+    segOddFillDark:    '#4A0808',
+    useCustomSegColors: false,
+    segEvenFill: '#F0DDB0',
+    segOddFill: '#8B1515',
+    segEvenText: '#5A0000',
+    segOddText: '#FFFFFF',
+    dividerColor: '#D4A520',
+    dividerWidth: 2.5,
+    bulbOnColor: '#FFD700',
+    bulbOffColor: '#6B3A00',
+    bulbGlowColor: '#FFD700',
+    hubOuterFill: '#c88a00',
+    hubInnerFill: '#ffe080',
+    hubInnerStroke: '#D4A520',
+    previewColors: ['#2a0808', '#F0DDB0', '#8B1515'],
+  },
+  neon_purple: {
+    key: 'neon_purple',
+    name: '네온 퍼플',
+    rimFill: '#0e0520',
+    rimRingColor: '#c040ff',
+    neonGlow: true,
+    useCustomSegColors: false,
+    segEvenFill: '#0e1878',
+    segOddFill: '#4a0f7a',
+    segEvenText: '#ffffff',
+    segOddText: '#ffffff',
+    dividerColor: '#7030c0',
+    dividerWidth: 2,
+    bulbOnColor: '#ff40ff',
+    bulbOffColor: '#2a0840',
+    bulbGlowColor: '#ff40ff',
+    hubOuterFill: '#1a0632',
+    hubInnerFill: '#e0c0ff',
+    hubInnerStroke: '#c040ff',
+    previewColors: ['#0e0520', '#0e1878', '#4a0f7a'],
+  },
 }
 
 export const THEME_STORAGE_KEY = 'wheel_theme'
 
 export function getSavedTheme(): ThemeKey {
-  if (typeof window === 'undefined') return 'burgundy_cream'
-  return (localStorage.getItem(THEME_STORAGE_KEY) as ThemeKey) ?? 'burgundy_cream'
+  if (typeof window === 'undefined') return 'fortune_gold'
+  const saved = localStorage.getItem(THEME_STORAGE_KEY) as ThemeKey
+  return (saved && saved in WHEEL_THEMES) ? saved : 'fortune_gold'
 }
 
 export function saveTheme(key: ThemeKey) {

@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from 'react'
 import RouletteWheel from '@/components/RouletteWheel'
 import FireworksBackground from '@/components/FireworksBackground'
 import SparklesOverlay from '@/components/SparklesOverlay'
+import SunRaysEffect from '@/components/SunRaysEffect'
 import { Prize } from '@/types'
 
 export default function Home() {
@@ -86,7 +87,12 @@ export default function Home() {
         ) : prizes.length === 0 ? (
           <div style={{ color: '#f4c64a', fontSize: 18 }}>등록된 상품이 없습니다.</div>
         ) : (
-          <RouletteWheel prizes={prizes} onSpinComplete={fetchPrizes} />
+          <div className="relative flex items-center justify-center w-full">
+            <SunRaysEffect />
+            <div style={{ position: 'relative', zIndex: 1, width: '100%' }}>
+              <RouletteWheel prizes={prizes} onSpinComplete={fetchPrizes} />
+            </div>
+          </div>
         )}
       </div>
     </div>
