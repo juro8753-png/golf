@@ -188,6 +188,35 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
 
       ctx.restore()
 
+      // 림 오로라/먹물 효과
+      if (th.hubPulse) {
+        const t = Date.now() / 2000
+        ctx.save()
+        ctx.beginPath()
+        ctx.arc(cx, cy, radius + 14, 0, 2 * Math.PI)
+        ctx.arc(cx, cy, radius, 0, 2 * Math.PI, true)
+        ctx.clip('evenodd' as CanvasFillRule)
+        const blobs = [
+          { r: 255, g: 180, b:   0, speed:  1.0, sz: 30, op: 0.58 },
+          { r: 140, g:  40, b: 255, speed: -0.6, sz: 34, op: 0.40 },
+          { r: 255, g: 120, b:   0, speed:  1.5, sz: 26, op: 0.48 },
+          { r: 100, g:  20, b: 200, speed: -1.0, sz: 32, op: 0.34 },
+          { r: 255, g: 220, b:  50, speed:  0.7, sz: 22, op: 0.52 },
+          { r: 200, g:   0, b: 255, speed: -1.3, sz: 28, op: 0.30 },
+        ]
+        blobs.forEach((bl, idx) => {
+          const a = (idx / blobs.length) * Math.PI * 2 + t * bl.speed
+          const gx = cx + (radius + 7) * Math.cos(a)
+          const gy = cy + (radius + 7) * Math.sin(a)
+          const grad = ctx.createRadialGradient(gx, gy, 0, gx, gy, bl.sz)
+          grad.addColorStop(0, `rgba(${bl.r},${bl.g},${bl.b},${bl.op})`)
+          grad.addColorStop(1, `rgba(${bl.r},${bl.g},${bl.b},0)`)
+          ctx.fillStyle = grad
+          ctx.fillRect(0, 0, size, size)
+        })
+        ctx.restore()
+      }
+
       // LED 전구 (외부 링)
       const numBulbs = 32
       const bulbDist = radius + 7
