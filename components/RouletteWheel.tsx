@@ -203,26 +203,24 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
           ctx.stroke()
         }
 
-        ctx.restore()  // end rotation
-
-        // 8. Hub — 화면 고정 좌표 (회전 블록 바깥) → 회전해도 허브 모양 불변
+        // 8. Hub (4-layer gold, scaled to r=75*s)
         {
           const HR  = 75 * s
           const bvR = HR * (136 / 150)
           const spR = HR * (118 / 150)
           const knR = HR * (110 / 150)
+          const dtR = Math.max(1.5, HR * (9 / 150))
           const ang = 160 * Math.PI / 180
 
-          // outer gold rim: linear-gradient(160deg, #fdeea4, #bb8a30) + drop shadow
           ctx.save()
           ctx.beginPath()
-          ctx.arc(cx, cy, HR, 0, Math.PI * 2)
+          ctx.arc(0, 0, HR, 0, Math.PI * 2)
           ctx.shadowColor = 'rgba(0,0,0,0.45)'
           ctx.shadowBlur = 14
           ctx.shadowOffsetY = 5
           const hOg = ctx.createLinearGradient(
-            cx - Math.cos(ang) * HR, cy - Math.sin(ang) * HR,
-            cx + Math.cos(ang) * HR, cy + Math.sin(ang) * HR
+            -Math.cos(ang) * HR, -Math.sin(ang) * HR,
+             Math.cos(ang) * HR,  Math.sin(ang) * HR
           )
           hOg.addColorStop(0, '#fdeea4')
           hOg.addColorStop(1, '#bb8a30')
@@ -231,11 +229,10 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
           ctx.shadowBlur = 0; ctx.shadowOffsetY = 0
           ctx.restore()
 
-          // copper bevel: linear-gradient(180deg, #edc878, #bd8530, #7d531a)
           ctx.save()
           ctx.beginPath()
-          ctx.arc(cx, cy, bvR, 0, Math.PI * 2)
-          const hBg = ctx.createLinearGradient(cx, cy - bvR, cx, cy + bvR)
+          ctx.arc(0, 0, bvR, 0, Math.PI * 2)
+          const hBg = ctx.createLinearGradient(0, -bvR, 0, bvR)
           hBg.addColorStop(0,    '#edc878')
           hBg.addColorStop(0.52, '#bd8530')
           hBg.addColorStop(1,    '#7d531a')
@@ -243,44 +240,45 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
           ctx.fill()
           ctx.restore()
 
-          // dark separator: #9c7322
           ctx.save()
           ctx.beginPath()
-          ctx.arc(cx, cy, spR, 0, Math.PI * 2)
+          ctx.arc(0, 0, spR, 0, Math.PI * 2)
           ctx.fillStyle = '#9c7322'
           ctx.fill()
           ctx.restore()
 
-          // knob: knobGold radial (SVG defs cx=478,cy=476,r=82 → offset from center)
-          // + knobHi highlight + inner shadow — 모두 화면 좌표 고정
           ctx.save()
           ctx.beginPath()
-          ctx.arc(cx, cy, knR, 0, Math.PI * 2)
+          ctx.arc(0, 0, knR, 0, Math.PI * 2)
           ctx.clip()
-          // knobGold: center offset (-22*s, -24*s) from cx,cy — 고정 하이라이트
-          const gCx = cx - 22 * s, gCy = cy - 24 * s
-          const hCg = ctx.createRadialGradient(gCx, gCy, 0, gCx, gCy, 82 * s)
-          hCg.addColorStop(0,    '#fcefb2')
-          hCg.addColorStop(0.42, '#e0bd5e')
-          hCg.addColorStop(0.78, '#b88e30')
-          hCg.addColorStop(1,    '#8a661d')
+          const hCg = (ctx as unknown as { createConicGradient(s: number, x: number, y: number): CanvasGradient }).createConicGradient(0, 0, 0)
+          hCg.addColorStop(0,        '#f4e2a0')
+          hCg.addColorStop(50 / 360, '#d3a948')
+          hCg.addColorStop(90 / 360, '#b88c33')
+          hCg.addColorStop(130 / 360,'#d3a948')
+          hCg.addColorStop(180 / 360,'#f4e2a0')
+          hCg.addColorStop(230 / 360,'#d3a948')
+          hCg.addColorStop(270 / 360,'#b88c33')
+          hCg.addColorStop(310 / 360,'#d3a948')
+          hCg.addColorStop(1,        '#f4e2a0')
           ctx.fillStyle = hCg
-          ctx.fillRect(cx - knR, cy - knR, knR * 2, knR * 2)
-          // knobHi: centered white highlight (objectBoundingBox cx=0.5 cy=0.5)
-          const hHi = ctx.createRadialGradient(cx, cy, 0, cx, cy, knR)
-          hHi.addColorStop(0,   'rgba(255,255,255,0.70)')
-          hHi.addColorStop(1,   'rgba(255,255,255,0)')
-          ctx.fillStyle = hHi
-          ctx.fillRect(cx - knR, cy - knR, knR * 2, knR * 2)
-          // inner shadow: box-shadow inset 0 0 14px rgba(90,60,12,.35)
-          const hIn = ctx.createRadialGradient(cx, cy, knR * 0.6, cx, cy, knR)
+          ctx.fillRect(-knR, -knR, knR * 2, knR * 2)
+          // radial-gradient(circle at 40% 33%) — dome highlight
+          const hDm = ctx.createRadialGradient(-knR * 0.2, -knR * 0.34, 0, 0, 0, knR)
+          hDm.addColorStop(0,    'rgba(255,255,255,0.60)')
+          hDm.addColorStop(0.52, 'rgba(255,255,255,0)')
+          ctx.fillStyle = hDm
+          ctx.fillRect(-knR, -knR, knR * 2, knR * 2)
+          // box-shadow: inset 0 0 14px — inner shadow
+          const hIn = ctx.createRadialGradient(0, 0, knR * 0.6, 0, 0, knR)
           hIn.addColorStop(0, 'rgba(90,60,12,0)')
           hIn.addColorStop(1, 'rgba(90,60,12,0.35)')
           ctx.fillStyle = hIn
-          ctx.fillRect(cx - knR, cy - knR, knR * 2, knR * 2)
+          ctx.fillRect(-knR, -knR, knR * 2, knR * 2)
           ctx.restore()
         }
 
+        ctx.restore()  // end rotation
         return
       }
 
