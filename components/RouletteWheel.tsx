@@ -537,7 +537,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
           onDoubleClick={() => router.push('/admin')}
           style={{
             cursor: 'pointer',
-            boxShadow: '0 0 12px 5px rgba(255,255,255,0.50), 0 0 38px 16px rgba(255,255,255,0.22), 0 0 75px 32px rgba(255,255,255,0.09)',
+            boxShadow: '0 0 20px rgba(255,255,255,0.55), 0 0 50px rgba(255,255,255,0.22), 0 0 100px rgba(255,255,255,0.09)',
           }}
         />
       </div>
