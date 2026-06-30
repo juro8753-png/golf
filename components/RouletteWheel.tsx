@@ -263,15 +263,31 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
           hCg.addColorStop(1,        '#f4e2a0')
           ctx.fillStyle = hCg
           ctx.fillRect(-knR, -knR, knR * 2, knR * 2)
-          ctx.lineWidth = 0.4
-          for (let li = 0; li < 64; li++) {
-            const la = (li / 64) * Math.PI * 2
+          // repeating-conic-gradient (mix-blend-mode: overlay) — light stripes
+          const dA = (Math.PI * 2) / 128
+          ctx.save()
+          ctx.globalCompositeOperation = 'overlay'
+          for (let si = 0; si < 128; si += 2) {
             ctx.beginPath()
             ctx.moveTo(0, 0)
-            ctx.lineTo(Math.cos(la) * knR, Math.sin(la) * knR)
-            ctx.strokeStyle = li % 2 === 0 ? 'rgba(255,255,255,0.15)' : 'rgba(60,40,8,0.10)'
-            ctx.stroke()
+            ctx.arc(0, 0, knR, si * dA, (si + 1) * dA)
+            ctx.closePath()
+            ctx.fillStyle = 'rgba(255,255,255,0.15)'
+            ctx.fill()
           }
+          ctx.restore()
+          // repeating-conic-gradient (mix-blend-mode: multiply) — dark stripes
+          ctx.save()
+          ctx.globalCompositeOperation = 'multiply'
+          for (let si = 1; si < 128; si += 2) {
+            ctx.beginPath()
+            ctx.moveTo(0, 0)
+            ctx.arc(0, 0, knR, si * dA, (si + 1) * dA)
+            ctx.closePath()
+            ctx.fillStyle = 'rgba(60,40,8,0.10)'
+            ctx.fill()
+          }
+          ctx.restore()
           const hDm = ctx.createRadialGradient(-knR * 0.2, -knR * 0.34, 0, 0, 0, knR)
           hDm.addColorStop(0,    'rgba(255,255,255,0.60)')
           hDm.addColorStop(0.52, 'rgba(255,255,255,0)')
