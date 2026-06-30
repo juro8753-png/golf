@@ -130,16 +130,6 @@ export default function SunRaysEffect() {
         {/* 1. 휠 뒤 앰비언트 글로우 */}
         <circle cx={CX} cy={CY} r={345} fill="url(#ambientGlow)"/>
 
-        {/* 휠 외부 화이트 블룸 — 3겹, rim 바로 바깥에서 퍼짐 */}
-        <circle cx={BLOOM_CX} cy={BLOOM_CY} r={BLOOM_R} fill="none"
-          stroke="rgba(255,255,255,0.07)" strokeWidth="40"
-          filter="url(#bloomW)"/>
-        <circle cx={BLOOM_CX} cy={BLOOM_CY} r={BLOOM_R} fill="none"
-          stroke="rgba(255,255,255,0.16)" strokeWidth="22"
-          filter="url(#bloomM)"/>
-        <circle cx={BLOOM_CX} cy={BLOOM_CY} r={BLOOM_R} fill="none"
-          stroke="rgba(255,255,255,0.36)" strokeWidth="10"
-          filter="url(#bloomT)"/>
 
         {/* 2. 스타버스트 대형 코로나 (블러드 헤일로) */}
         <circle cx={SX} cy={SY} r={105} fill="url(#starCorona)" filter="url(#gblur)"/>
