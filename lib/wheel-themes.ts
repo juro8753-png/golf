@@ -32,6 +32,26 @@ export interface WheelThemeConfig {
 }
 
 export const WHEEL_THEMES: Record<ThemeKey, WheelThemeConfig> = {
+  fortune_wheel_classic: {
+    key: 'fortune_wheel_classic',
+    name: '포춘 클래식',
+    rimFill: '#470d0d',
+    rimRingColor: '#c89a36',
+    useCustomSegColors: false,
+    segEvenFill: '#df3a34',
+    segOddFill: '#f3e7ca',
+    segEvenText: '#fdf3df',
+    segOddText: '#c1271f',
+    dividerColor: '#c89a36',
+    dividerWidth: 2.5,
+    bulbOnColor: '#ffc63f',
+    bulbOffColor: '#ffe07a',
+    bulbGlowColor: '#ffc63f',
+    hubOuterFill: '#fdeea4',
+    hubInnerFill: '#f4e2a0',
+    hubInnerStroke: '#c89a36',
+    previewColors: ['#470d0d', '#df3a34', '#f3e7ca'],
+  },
   burgundy_cream: {
     key: 'burgundy_cream',
     name: '버건디 크림',
@@ -200,34 +220,14 @@ export const WHEEL_THEMES: Record<ThemeKey, WheelThemeConfig> = {
     hubInnerStroke: '#c040ff',
     previewColors: ['#0e0520', '#0e1878', '#4a0f7a'],
   },
-  fortune_wheel_classic: {
-    key: 'fortune_wheel_classic',
-    name: '포춘 클래식',
-    rimFill: '#470d0d',
-    rimRingColor: '#c89a36',
-    useCustomSegColors: false,
-    segEvenFill: '#df3a34',
-    segOddFill: '#f3e7ca',
-    segEvenText: '#fdf3df',
-    segOddText: '#c1271f',
-    dividerColor: '#c89a36',
-    dividerWidth: 2.5,
-    bulbOnColor: '#ffc63f',
-    bulbOffColor: '#ffe07a',
-    bulbGlowColor: '#ffc63f',
-    hubOuterFill: '#fdeea4',
-    hubInnerFill: '#f4e2a0',
-    hubInnerStroke: '#c89a36',
-    previewColors: ['#470d0d', '#df3a34', '#f3e7ca'],
-  },
 }
 
 export const THEME_STORAGE_KEY = 'wheel_theme'
 
 export function getSavedTheme(): ThemeKey {
-  if (typeof window === 'undefined') return 'fortune_gold'
+  if (typeof window === 'undefined') return 'fortune_wheel_classic'
   const saved = localStorage.getItem(THEME_STORAGE_KEY) as ThemeKey
-  return (saved && saved in WHEEL_THEMES) ? saved : 'fortune_gold'
+  return (saved && saved in WHEEL_THEMES) ? saved : 'fortune_wheel_classic'
 }
 
 export function saveTheme(key: ThemeKey) {

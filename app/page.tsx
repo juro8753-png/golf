@@ -171,7 +171,7 @@ export default function LandingPage() {
           {/* CTA 버튼 */}
           <div style={{ marginTop: 36, display: 'flex', justifyContent: 'center', width: '100%' }}>
             <button
-              onClick={() => { soundEngine.bgStart(); playChime(); setTimeout(() => router.push('/roulette'), 350) }}
+              onClick={() => { playChime(); setTimeout(() => router.push('/roulette'), 350) }}
               style={{
                 width: '75%',
                 padding: '17px 20px',

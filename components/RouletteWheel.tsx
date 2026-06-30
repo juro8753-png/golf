@@ -42,7 +42,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
   const [result, setResult] = useState<SpinResponse | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
-  const [theme, setTheme] = useState<WheelThemeConfig>(WHEEL_THEMES.fortune_gold)
+  const [theme, setTheme] = useState<WheelThemeConfig>(WHEEL_THEMES.fortune_wheel_classic)
   const [todayCount, setTodayCount] = useState(0)
   const [limitToast, setLimitToast] = useState(false)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout>>()
@@ -176,12 +176,13 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
           ctx.restore()
         })
 
-        // 7. Bulbs at r=405*s (24 static, alternating lit/unlit)
+        // 7. Bulbs at r=405*s (24, alternating blink)
+        const bulbPhase = Math.floor(Date.now() / 300)
         for (let i = 0; i < 24; i++) {
           const ba = -Math.PI / 2 + (i / 24) * Math.PI * 2
           const bx = Math.cos(ba) * 405 * s
           const by = Math.sin(ba) * 405 * s
-          const isLit = i % 2 === 0
+          const isLit = (i + bulbPhase) % 2 === 0
           const br = (isLit ? 13 : 12) * s
           ctx.beginPath()
           ctx.arc(bx, by, br, 0, Math.PI * 2)
@@ -207,7 +208,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         {
           const HR  = 75 * s
           const bvR = HR * (136 / 150)
-          const spR = HR * (118 / 150)
+          const spR = HR * (113 / 150)
           const knR = HR * (110 / 150)
           const dtR = Math.max(1.5, HR * (9 / 150))
           const ang = 160 * Math.PI / 180
@@ -219,8 +220,8 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
           ctx.shadowBlur = 14
           ctx.shadowOffsetY = 5
           const hOg = ctx.createRadialGradient(0, 0, HR * 0.3, 0, 0, HR)
-          hOg.addColorStop(0, '#fdeea4')
-          hOg.addColorStop(1, '#bb8a30')
+          hOg.addColorStop(0, '#fff5c0')
+          hOg.addColorStop(1, '#d4a840')
           ctx.fillStyle = hOg
           ctx.fill()
           ctx.shadowBlur = 0; ctx.shadowOffsetY = 0
@@ -230,9 +231,9 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
           ctx.beginPath()
           ctx.arc(0, 0, bvR, 0, Math.PI * 2)
           const hBg = ctx.createRadialGradient(0, 0, bvR * 0.2, 0, 0, bvR)
-          hBg.addColorStop(0,    '#edc878')
-          hBg.addColorStop(0.52, '#bd8530')
-          hBg.addColorStop(1,    '#7d531a')
+          hBg.addColorStop(0,    '#f5dc90')
+          hBg.addColorStop(0.52, '#d4a040')
+          hBg.addColorStop(1,    '#a87030')
           ctx.fillStyle = hBg
           ctx.fill()
           ctx.restore()
@@ -240,7 +241,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
           ctx.save()
           ctx.beginPath()
           ctx.arc(0, 0, spR, 0, Math.PI * 2)
-          ctx.fillStyle = '#9c7322'
+          ctx.fillStyle = '#b89030'
           ctx.fill()
           ctx.restore()
 
@@ -249,15 +250,15 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
           ctx.arc(0, 0, knR, 0, Math.PI * 2)
           ctx.clip()
           const hCg = (ctx as unknown as { createConicGradient(s: number, x: number, y: number): CanvasGradient }).createConicGradient(0, 0, 0)
-          hCg.addColorStop(0,        '#f4e2a0')
-          hCg.addColorStop(50 / 360, '#d3a948')
-          hCg.addColorStop(90 / 360, '#b88c33')
-          hCg.addColorStop(130 / 360,'#d3a948')
-          hCg.addColorStop(180 / 360,'#f4e2a0')
-          hCg.addColorStop(230 / 360,'#d3a948')
-          hCg.addColorStop(270 / 360,'#b88c33')
-          hCg.addColorStop(310 / 360,'#d3a948')
-          hCg.addColorStop(1,        '#f4e2a0')
+          hCg.addColorStop(0,        '#fff5c0')
+          hCg.addColorStop(50 / 360, '#e8bf58')
+          hCg.addColorStop(90 / 360, '#d0a848')
+          hCg.addColorStop(130 / 360,'#e8bf58')
+          hCg.addColorStop(180 / 360,'#fff5c0')
+          hCg.addColorStop(230 / 360,'#e8bf58')
+          hCg.addColorStop(270 / 360,'#d0a848')
+          hCg.addColorStop(310 / 360,'#e8bf58')
+          hCg.addColorStop(1,        '#fff5c0')
           ctx.fillStyle = hCg
           ctx.fillRect(-knR, -knR, knR * 2, knR * 2)
           // radial-gradient(circle at 40% 33%) — dome highlight
@@ -269,10 +270,11 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
           // box-shadow: inset 0 0 14px — inner shadow
           const hIn = ctx.createRadialGradient(0, 0, knR * 0.6, 0, 0, knR)
           hIn.addColorStop(0, 'rgba(90,60,12,0)')
-          hIn.addColorStop(1, 'rgba(90,60,12,0.35)')
+          hIn.addColorStop(1, 'rgba(90,60,12,0.18)')
           ctx.fillStyle = hIn
           ctx.fillRect(-knR, -knR, knR * 2, knR * 2)
           ctx.restore()
+
         }
 
         ctx.restore()  // end rotation
@@ -748,7 +750,6 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
 
     setSpinning(true)
     setShowModal(false)
-    soundEngine.bgStart()
 
     let spinResponse: SpinResponse
     try {

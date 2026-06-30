@@ -125,9 +125,14 @@ class SoundEngine {
     if (this.bgFadeTimer) clearTimeout(this.bgFadeTimer)
     this.bgAudio.volume = 0.4
     if (this.bgAudio.paused) {
-      this.bgAudio.currentTime = 0
       this.bgAudio.play().catch((e) => console.error('[bgMusic] play failed:', e))
     }
+  }
+
+  bgPause() {
+    if (!this.bgAudio) return
+    if (this.bgFadeTimer) clearTimeout(this.bgFadeTimer)
+    this.bgAudio.pause()
   }
 
   bgDuck(duckDuration = 4000) {

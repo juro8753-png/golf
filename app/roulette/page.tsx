@@ -8,6 +8,7 @@ import SparklesOverlay from '@/components/SparklesOverlay'
 import SunRaysEffect from '@/components/SunRaysEffect'
 import { Prize } from '@/types'
 import { BG_THEMES, getSavedBg, ROULETTE_BG_KEY } from '@/lib/bg-themes'
+import { soundEngine } from '@/lib/sounds'
 
 export default function Home() {
   const [prizes, setPrizes] = useState<Prize[]>([])
@@ -27,6 +28,10 @@ export default function Home() {
 
   useEffect(() => { fetchPrizes() }, [fetchPrizes])
   useEffect(() => { setBgGradient(BG_THEMES[getSavedBg(ROULETTE_BG_KEY)].gradient) }, [])
+  useEffect(() => {
+    soundEngine.bgStart()
+    return () => soundEngine.bgPause()
+  }, [])
 
   useEffect(() => {
     const onChange = () => setIsFullscreen(!!document.fullscreenElement)
