@@ -314,36 +314,30 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         ctx.fill()
       }
 
-      // 허브 시인 — 우→좌 광택 스윕 후 멈춤
-      // 버튼의 backgroundSize:220% 방식과 동일: 그라디언트를 넓게 펼쳐 얇은 빛만 지나가게
+      // 허브 시인 — 쉬지 않고 우↔좌 왔다갔다 (코사인 파형)
       {
         const HR    = 22
-        const CYCLE = 3.2
-        const SDUR  = 0.72
-        const GHALF = HR * 2.5             // 버튼 220% → 그라디언트 폭을 허브의 5배로
-        const t     = (Date.now() / 1000) % CYCLE
-        if (t < SDUR) {
-          const p    = t / SDUR
-          const ease = p < 0.5 ? 2*p*p : 1 - Math.pow(-2*p+2, 2)/2
-          const sx   = cx + HR * 1.5 * (1 - 2 * ease)  // 우→좌
-          const a    = 15 * Math.PI / 180                // 버튼과 동일 105° 기울기
-          ctx.save()
-          ctx.beginPath()
-          ctx.arc(cx, cy, HR, 0, 2 * Math.PI)
-          ctx.clip()
-          const sg = ctx.createLinearGradient(
-            sx - Math.cos(a) * GHALF, cy + Math.sin(a) * GHALF,
-            sx + Math.cos(a) * GHALF, cy - Math.sin(a) * GHALF
-          )
-          sg.addColorStop(0,    'rgba(255,255,255,0)')
-          sg.addColorStop(0.38, 'rgba(255,255,255,0)')
-          sg.addColorStop(0.50, 'rgba(255,255,255,0.82)')
-          sg.addColorStop(0.62, 'rgba(255,255,255,0)')
-          sg.addColorStop(1,    'rgba(255,255,255,0)')
-          ctx.fillStyle = sg
-          ctx.fillRect(cx - GHALF, cy - GHALF, GHALF * 2, GHALF * 2)
-          ctx.restore()
-        }
+        const GHALF = HR * 2.5
+        const CYCLE = 2.0   // 왕복 1사이클 (초)
+        const pos   = Math.cos((Date.now() / 1000) * Math.PI * 2 / CYCLE)
+        const sx    = cx + HR * 1.5 * pos   // 우(+)↔좌(-) 연속 진동
+        const a     = 15 * Math.PI / 180
+        ctx.save()
+        ctx.beginPath()
+        ctx.arc(cx, cy, HR, 0, 2 * Math.PI)
+        ctx.clip()
+        const sg = ctx.createLinearGradient(
+          sx - Math.cos(a) * GHALF, cy + Math.sin(a) * GHALF,
+          sx + Math.cos(a) * GHALF, cy - Math.sin(a) * GHALF
+        )
+        sg.addColorStop(0,    'rgba(255,255,255,0)')
+        sg.addColorStop(0.38, 'rgba(255,255,255,0)')
+        sg.addColorStop(0.50, 'rgba(255,255,255,0.82)')
+        sg.addColorStop(0.62, 'rgba(255,255,255,0)')
+        sg.addColorStop(1,    'rgba(255,255,255,0)')
+        ctx.fillStyle = sg
+        ctx.fillRect(cx - GHALF, cy - GHALF, GHALF * 2, GHALF * 2)
+        ctx.restore()
       }
     },
     [prizes, theme]
