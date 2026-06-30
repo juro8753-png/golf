@@ -190,7 +190,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
 
       // 림 오로라/먹물 효과
       if (th.hubPulse) {
-        const t = Date.now() / 2000
+        const t = Date.now() / 1333
         ctx.save()
         ctx.beginPath()
         ctx.arc(cx, cy, radius + 14, 0, 2 * Math.PI)
