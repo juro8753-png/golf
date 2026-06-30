@@ -376,12 +376,15 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         ctx.restore()
       }
 
-      // 전체 휠 시인 (빛줄기가 왼쪽→오른쪽 지나감)
+      // 전체 휠 시인 (ease-in-out, 버튼과 동일 패턴)
       {
-        const PERIOD = 5.0
-        const frac = ((Date.now() / 1000) % PERIOD) / PERIOD
-        const sweep = cx + radius * (-1.6 + frac * 3.2)
-        const BAND = radius * 0.22
+        const PERIOD = 3.5
+        const raw = ((Date.now() / 1000) % PERIOD) / PERIOD
+        // 첫 62% 동안만 통과, 이후 화면 밖 대기 (버튼의 sheen keyframe과 동일한 패턴)
+        const t = Math.min(raw / 0.62, 1.0)
+        const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
+        const sweep = cx + radius * (-1.5 + eased * 3.0)
+        const BAND = radius * 0.28
         const angle = 18 * Math.PI / 180
         const dx = Math.cos(angle)
         const dy = Math.sin(angle)
@@ -393,11 +396,11 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
           sweep - dx * BAND, cy + dy * BAND,
           sweep + dx * BAND, cy - dy * BAND
         )
-        sg.addColorStop(0,    'rgba(255,255,255,0)')
-        sg.addColorStop(0.35, 'rgba(255,255,255,0)')
-        sg.addColorStop(0.5,  'rgba(255,255,255,0.22)')
-        sg.addColorStop(0.65, 'rgba(255,255,255,0)')
-        sg.addColorStop(1,    'rgba(255,255,255,0)')
+        sg.addColorStop(0,    'rgba(255,248,210,0)')
+        sg.addColorStop(0.3,  'rgba(255,248,210,0.06)')
+        sg.addColorStop(0.5,  'rgba(255,248,210,0.20)')
+        sg.addColorStop(0.7,  'rgba(255,248,210,0.06)')
+        sg.addColorStop(1,    'rgba(255,248,210,0)')
         ctx.fillStyle = sg
         ctx.fillRect(cx - radius - 5, cy - radius - 5, (radius + 5) * 2, (radius + 5) * 2)
         ctx.restore()
