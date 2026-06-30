@@ -5,6 +5,11 @@ const CX = SIZE / 2
 const CY = SIZE / 2
 const INNER_R = 242  // 휠 림 반경 (SVG 좌표 기준)
 
+// 블룸 링 위치 — RouletteWheel의 marginTop:36px 때문에 휠 중심이 SVG 중심보다 위에 있음
+const BLOOM_CX = CX
+const BLOOM_CY = CY - 22   // 위로 올리기
+const BLOOM_R  = 218        // 실제 휠 림에 맞게 축소
+
 // 광원 위치: 휠 왼쪽 상단 (참고 이미지 기준)
 const SX = 228
 const SY = 182
@@ -126,14 +131,14 @@ export default function SunRaysEffect() {
         <circle cx={CX} cy={CY} r={345} fill="url(#ambientGlow)"/>
 
         {/* 휠 외부 화이트 블룸 — 3겹, rim 바로 바깥에서 퍼짐 */}
-        <circle cx={CX} cy={CY} r={INNER_R} fill="none"
-          stroke="rgba(255,255,255,0.07)" strokeWidth="22"
+        <circle cx={BLOOM_CX} cy={BLOOM_CY} r={BLOOM_R} fill="none"
+          stroke="rgba(255,255,255,0.07)" strokeWidth="40"
           filter="url(#bloomW)"/>
-        <circle cx={CX} cy={CY} r={INNER_R} fill="none"
-          stroke="rgba(255,255,255,0.15)" strokeWidth="10"
+        <circle cx={BLOOM_CX} cy={BLOOM_CY} r={BLOOM_R} fill="none"
+          stroke="rgba(255,255,255,0.16)" strokeWidth="22"
           filter="url(#bloomM)"/>
-        <circle cx={CX} cy={CY} r={INNER_R} fill="none"
-          stroke="rgba(255,255,255,0.35)" strokeWidth="4"
+        <circle cx={BLOOM_CX} cy={BLOOM_CY} r={BLOOM_R} fill="none"
+          stroke="rgba(255,255,255,0.36)" strokeWidth="10"
           filter="url(#bloomT)"/>
 
         {/* 2. 스타버스트 대형 코로나 (블러드 헤일로) */}
