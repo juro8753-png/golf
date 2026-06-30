@@ -535,10 +535,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
           ref={canvasRef}
           className="rounded-full"
           onDoubleClick={() => router.push('/admin')}
-          style={{
-            cursor: 'pointer',
-            boxShadow: '0 0 20px rgba(255,255,255,0.55), 0 0 50px rgba(255,255,255,0.22), 0 0 100px rgba(255,255,255,0.09)',
-          }}
+          style={{ cursor: 'pointer' }}
         />
       </div>
 
