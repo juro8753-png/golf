@@ -44,9 +44,10 @@ export const LANDING_BG_KEY = 'landing_bg_theme'
 export const ROULETTE_BG_KEY = 'roulette_bg_theme'
 
 export function getSavedBg(storageKey: string): BgThemeKey {
-  if (typeof window === 'undefined') return 'purple_original'
+  if (typeof window === 'undefined') return storageKey === LANDING_BG_KEY ? 'emerald_black' : 'purple_original'
   const saved = localStorage.getItem(storageKey) as BgThemeKey
-  return (saved && saved in BG_THEMES) ? saved : 'purple_original'
+  const defaultKey: BgThemeKey = storageKey === LANDING_BG_KEY ? 'emerald_black' : 'purple_original'
+  return (saved && saved in BG_THEMES) ? saved : defaultKey
 }
 
 export function saveBg(storageKey: string, key: BgThemeKey) {

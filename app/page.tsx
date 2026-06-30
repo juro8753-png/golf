@@ -33,7 +33,7 @@ function playChime() {
 export default function LandingPage() {
   const router = useRouter()
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const [bgGradient, setBgGradient] = useState(BG_THEMES.purple_original.gradient)
+  const [bgGradient, setBgGradient] = useState(BG_THEMES.emerald_black.gradient)
 
   useEffect(() => {
     setBgGradient(BG_THEMES[getSavedBg(LANDING_BG_KEY)].gradient)

@@ -186,6 +186,186 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         ctx.restore()
       })
 
+      // 중심 허브 — 세그먼트와 함께 회전 (0,0 기준)
+      {
+        const HUB_R  = 22
+        const bevelR = HUB_R * (136 / 150)
+        const sepR   = HUB_R * (118 / 150)
+        const knobR  = HUB_R * (110 / 150)
+        const dotR   = Math.max(1.5, HUB_R * (9 / 150))
+        const ang    = 160 * Math.PI / 180
+
+        ctx.save()
+        ctx.beginPath()
+        ctx.arc(0, 0, HUB_R, 0, Math.PI * 2)
+        ctx.shadowColor = 'rgba(0,0,0,0.45)'
+        ctx.shadowBlur = 14
+        ctx.shadowOffsetY = 5
+        const hOg = ctx.createLinearGradient(
+          -Math.cos(ang) * HUB_R, -Math.sin(ang) * HUB_R,
+           Math.cos(ang) * HUB_R,  Math.sin(ang) * HUB_R
+        )
+        hOg.addColorStop(0, '#fdeea4')
+        hOg.addColorStop(1, '#bb8a30')
+        ctx.fillStyle = hOg
+        ctx.fill()
+        ctx.shadowBlur = 0; ctx.shadowOffsetY = 0
+        ctx.restore()
+
+        ctx.save()
+        ctx.beginPath()
+        ctx.arc(0, 0, bevelR, 0, Math.PI * 2)
+        const hBg = ctx.createLinearGradient(0, -bevelR, 0, bevelR)
+        hBg.addColorStop(0,    '#edc878')
+        hBg.addColorStop(0.52, '#bd8530')
+        hBg.addColorStop(1,    '#7d531a')
+        ctx.fillStyle = hBg
+        ctx.fill()
+        ctx.restore()
+
+        ctx.save()
+        ctx.beginPath()
+        ctx.arc(0, 0, sepR, 0, Math.PI * 2)
+        ctx.fillStyle = '#9c7322'
+        ctx.fill()
+        ctx.restore()
+
+        ctx.save()
+        ctx.beginPath()
+        ctx.arc(0, 0, knobR, 0, Math.PI * 2)
+        ctx.clip()
+        const hCg = (ctx as unknown as { createConicGradient(s: number, x: number, y: number): CanvasGradient }).createConicGradient(0, 0, 0)
+        hCg.addColorStop(0,        '#f4e2a0')
+        hCg.addColorStop(50 / 360, '#d3a948')
+        hCg.addColorStop(90 / 360, '#b88c33')
+        hCg.addColorStop(130 / 360,'#d3a948')
+        hCg.addColorStop(180 / 360,'#f4e2a0')
+        hCg.addColorStop(230 / 360,'#d3a948')
+        hCg.addColorStop(270 / 360,'#b88c33')
+        hCg.addColorStop(310 / 360,'#d3a948')
+        hCg.addColorStop(1,        '#f4e2a0')
+        ctx.fillStyle = hCg
+        ctx.fillRect(-knobR, -knobR, knobR * 2, knobR * 2)
+        ctx.lineWidth = 0.4
+        for (let li = 0; li < 64; li++) {
+          const la = (li / 64) * Math.PI * 2
+          ctx.beginPath()
+          ctx.moveTo(0, 0)
+          ctx.lineTo(Math.cos(la) * knobR, Math.sin(la) * knobR)
+          ctx.strokeStyle = li % 2 === 0 ? 'rgba(255,255,255,0.15)' : 'rgba(60,40,8,0.10)'
+          ctx.stroke()
+        }
+        const hDg = ctx.createRadialGradient(-knobR * 0.2, -knobR * 0.34, 0, 0, 0, knobR)
+        hDg.addColorStop(0,    'rgba(255,255,255,0.60)')
+        hDg.addColorStop(0.52, 'rgba(255,255,255,0)')
+        ctx.fillStyle = hDg
+        ctx.fillRect(-knobR, -knobR, knobR * 2, knobR * 2)
+        const hIg = ctx.createRadialGradient(0, 0, knobR * 0.6, 0, 0, knobR)
+        hIg.addColorStop(0, 'rgba(90,60,12,0)')
+        hIg.addColorStop(1, 'rgba(90,60,12,0.35)')
+        ctx.fillStyle = hIg
+        ctx.fillRect(-knobR, -knobR, knobR * 2, knobR * 2)
+        ctx.restore()
+
+        ctx.beginPath()
+        ctx.arc(0, 0, dotR, 0, Math.PI * 2)
+        const hDdg = ctx.createRadialGradient(0, 0, 0, 0, 0, dotR)
+        hDdg.addColorStop(0, '#caa23c')
+        hDdg.addColorStop(1, '#8a6a1d')
+        ctx.fillStyle = hDdg
+        ctx.fill()
+
+        if (th.neonGlow) {
+          ctx.beginPath()
+          ctx.arc(0, 0, HUB_R + 2, 0, 2 * Math.PI)
+          ctx.shadowColor = th.hubInnerStroke
+          ctx.shadowBlur = 25
+          ctx.strokeStyle = th.hubInnerStroke
+          ctx.lineWidth = 3
+          ctx.stroke()
+          ctx.shadowBlur = 0
+        }
+      }
+
+      // 허브 시인
+      {
+        const HR    = 22
+        const GHALF = HR * 2.5
+        const CYCLE = 2.0
+        const pos   = Math.cos((Date.now() / 1000) * Math.PI * 2 / CYCLE)
+        const sx    = HR * 1.5 * pos
+        const a     = 15 * Math.PI / 180
+        ctx.save()
+        ctx.beginPath()
+        ctx.arc(0, 0, HR, 0, 2 * Math.PI)
+        ctx.clip()
+        const hSg = ctx.createLinearGradient(
+          sx - Math.cos(a) * GHALF,  Math.sin(a) * GHALF,
+          sx + Math.cos(a) * GHALF, -Math.sin(a) * GHALF
+        )
+        hSg.addColorStop(0,    'rgba(255,255,255,0)')
+        hSg.addColorStop(0.38, 'rgba(255,255,255,0)')
+        hSg.addColorStop(0.50, 'rgba(255,255,255,0.82)')
+        hSg.addColorStop(0.62, 'rgba(255,255,255,0)')
+        hSg.addColorStop(1,    'rgba(255,255,255,0)')
+        ctx.fillStyle = hSg
+        ctx.fillRect(-GHALF, -GHALF, GHALF * 2, GHALF * 2)
+        ctx.restore()
+      }
+
+      // 허브 펄스 글로우
+      {
+        const HR  = 22
+        const now = Date.now() / 1000
+        const pulse = (Math.sin(now * Math.PI * 2 / 1.8) + 1) / 2
+
+        ctx.save()
+        const hPog = ctx.createRadialGradient(0, 0, HR * 0.85, 0, 0, HR + 10)
+        hPog.addColorStop(0, `rgba(255,210,60,${(0.28 + pulse * 0.37).toFixed(3)})`)
+        hPog.addColorStop(1, 'rgba(255,180,30,0)')
+        ctx.fillStyle = hPog
+        ctx.fillRect(-HR - 10, -HR - 10, (HR + 10) * 2, (HR + 10) * 2)
+        ctx.restore()
+
+        ctx.save()
+        ctx.globalAlpha = 0.20 + pulse * 0.35
+        ctx.beginPath()
+        ctx.arc(0, 0, HR, 0, Math.PI * 2)
+        ctx.clip()
+        const hPig = ctx.createRadialGradient(0, 0, 0, 0, 0, HR)
+        hPig.addColorStop(0,    'rgba(255,255,240,1)')
+        hPig.addColorStop(0.55, 'rgba(255,230,140,0.7)')
+        hPig.addColorStop(1,    'rgba(255,200,60,0)')
+        ctx.fillStyle = hPig
+        ctx.fillRect(-HR, -HR, HR * 2, HR * 2)
+        ctx.restore()
+
+        ctx.save()
+        ctx.beginPath()
+        ctx.arc(0, 0, HR, 0, Math.PI * 2)
+        ctx.clip()
+        ctx.lineCap = 'round'
+        for (const sp of [
+          { dx: -7, dy: -5, f: 5.2, ph: 0.0 },
+          { dx:  6, dy:  6, f: 4.0, ph: 1.8 },
+        ]) {
+          const v = Math.sin(now * sp.f + sp.ph)
+          if (v < 0.60) continue
+          const sa = (v - 0.60) / 0.40
+          const sz = 0.8 + sa * 2.5
+          ctx.globalAlpha = sa * 0.85
+          ctx.strokeStyle = '#FFD700'
+          ctx.lineWidth   = 1.0
+          ctx.beginPath()
+          ctx.moveTo(sp.dx - sz, sp.dy)
+          ctx.lineTo(sp.dx + sz, sp.dy)
+          ctx.moveTo(sp.dx,      sp.dy - sz)
+          ctx.lineTo(sp.dx,      sp.dy + sz)
+          ctx.stroke()
+        }
+        ctx.restore()
+      }
+
       ctx.restore()
 
       // 세그먼트 광원 오버레이 — 휠 중심 위쪽에서 빛이 비추는 효과
@@ -269,202 +449,6 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         ctx.fill()
       }
       ctx.shadowBlur = 0
-
-      // 중심 허브 — 스펀 골드 메탈 디자인
-      {
-        const HUB_R  = 22
-        const bevelR = HUB_R * (136 / 150)
-        const sepR   = HUB_R * (118 / 150)
-        const knobR  = HUB_R * (110 / 150)
-        const dotR   = Math.max(1.5, HUB_R * (9 / 150))
-        const ang    = 160 * Math.PI / 180
-
-        // 바깥 골드 림
-        ctx.save()
-        ctx.beginPath()
-        ctx.arc(cx, cy, HUB_R, 0, Math.PI * 2)
-        ctx.shadowColor = 'rgba(0,0,0,0.45)'
-        ctx.shadowBlur = 14
-        ctx.shadowOffsetY = 5
-        const og = ctx.createLinearGradient(
-          cx - Math.cos(ang) * HUB_R, cy - Math.sin(ang) * HUB_R,
-          cx + Math.cos(ang) * HUB_R, cy + Math.sin(ang) * HUB_R
-        )
-        og.addColorStop(0, '#fdeea4')
-        og.addColorStop(1, '#bb8a30')
-        ctx.fillStyle = og
-        ctx.fill()
-        ctx.shadowBlur = 0; ctx.shadowOffsetY = 0
-        ctx.restore()
-
-        // 카퍼 베벨 링
-        ctx.save()
-        ctx.beginPath()
-        ctx.arc(cx, cy, bevelR, 0, Math.PI * 2)
-        const bg = ctx.createLinearGradient(cx, cy - bevelR, cx, cy + bevelR)
-        bg.addColorStop(0,    '#edc878')
-        bg.addColorStop(0.52, '#bd8530')
-        bg.addColorStop(1,    '#7d531a')
-        ctx.fillStyle = bg
-        ctx.fill()
-        ctx.restore()
-
-        // 얇은 다크 세퍼레이터
-        ctx.save()
-        ctx.beginPath()
-        ctx.arc(cx, cy, sepR, 0, Math.PI * 2)
-        ctx.fillStyle = '#9c7322'
-        ctx.fill()
-        ctx.restore()
-
-        // 스펀 골드 노브 (코닉 그라디언트 + 브러시 라인 + 돔 하이라이트)
-        ctx.save()
-        ctx.beginPath()
-        ctx.arc(cx, cy, knobR, 0, Math.PI * 2)
-        ctx.clip()
-
-        const cg = (ctx as unknown as { createConicGradient(s: number, x: number, y: number): CanvasGradient }).createConicGradient(0, cx, cy)
-        cg.addColorStop(0,        '#f4e2a0')
-        cg.addColorStop(50 / 360, '#d3a948')
-        cg.addColorStop(90 / 360, '#b88c33')
-        cg.addColorStop(130 / 360,'#d3a948')
-        cg.addColorStop(180 / 360,'#f4e2a0')
-        cg.addColorStop(230 / 360,'#d3a948')
-        cg.addColorStop(270 / 360,'#b88c33')
-        cg.addColorStop(310 / 360,'#d3a948')
-        cg.addColorStop(1,        '#f4e2a0')
-        ctx.fillStyle = cg
-        ctx.fillRect(cx - knobR, cy - knobR, knobR * 2, knobR * 2)
-
-        // 방사형 브러시 라인
-        ctx.lineWidth = 0.4
-        for (let li = 0; li < 64; li++) {
-          const la = (li / 64) * Math.PI * 2
-          ctx.beginPath()
-          ctx.moveTo(cx, cy)
-          ctx.lineTo(cx + Math.cos(la) * knobR, cy + Math.sin(la) * knobR)
-          ctx.strokeStyle = li % 2 === 0 ? 'rgba(255,255,255,0.15)' : 'rgba(60,40,8,0.10)'
-          ctx.stroke()
-        }
-
-        // 돔 하이라이트
-        const dg = ctx.createRadialGradient(cx - knobR * 0.2, cy - knobR * 0.34, 0, cx, cy, knobR)
-        dg.addColorStop(0,    'rgba(255,255,255,0.60)')
-        dg.addColorStop(0.52, 'rgba(255,255,255,0)')
-        ctx.fillStyle = dg
-        ctx.fillRect(cx - knobR, cy - knobR, knobR * 2, knobR * 2)
-
-        // 이너 섀도
-        const ig = ctx.createRadialGradient(cx, cy, knobR * 0.6, cx, cy, knobR)
-        ig.addColorStop(0, 'rgba(90,60,12,0)')
-        ig.addColorStop(1, 'rgba(90,60,12,0.35)')
-        ctx.fillStyle = ig
-        ctx.fillRect(cx - knobR, cy - knobR, knobR * 2, knobR * 2)
-        ctx.restore()
-
-        // 센터 수렴점 도트
-        ctx.beginPath()
-        ctx.arc(cx, cy, dotR, 0, Math.PI * 2)
-        const ddg = ctx.createRadialGradient(cx, cy, 0, cx, cy, dotR)
-        ddg.addColorStop(0, '#caa23c')
-        ddg.addColorStop(1, '#8a6a1d')
-        ctx.fillStyle = ddg
-        ctx.fill()
-
-        // neon 테마 외부 글로우 (유지)
-        if (th.neonGlow) {
-          ctx.beginPath()
-          ctx.arc(cx, cy, HUB_R + 2, 0, 2 * Math.PI)
-          ctx.shadowColor = th.hubInnerStroke
-          ctx.shadowBlur = 25
-          ctx.strokeStyle = th.hubInnerStroke
-          ctx.lineWidth = 3
-          ctx.stroke()
-          ctx.shadowBlur = 0
-        }
-      }
-
-      // 허브 시인 — 쉬지 않고 우↔좌 왔다갔다 (코사인 파형)
-      {
-        const HR    = 22
-        const GHALF = HR * 2.5
-        const CYCLE = 2.0   // 왕복 1사이클 (초)
-        const pos   = Math.cos((Date.now() / 1000) * Math.PI * 2 / CYCLE)
-        const sx    = cx + HR * 1.5 * pos   // 우(+)↔좌(-) 연속 진동
-        const a     = 15 * Math.PI / 180
-        ctx.save()
-        ctx.beginPath()
-        ctx.arc(cx, cy, HR, 0, 2 * Math.PI)
-        ctx.clip()
-        const sg = ctx.createLinearGradient(
-          sx - Math.cos(a) * GHALF, cy + Math.sin(a) * GHALF,
-          sx + Math.cos(a) * GHALF, cy - Math.sin(a) * GHALF
-        )
-        sg.addColorStop(0,    'rgba(255,255,255,0)')
-        sg.addColorStop(0.38, 'rgba(255,255,255,0)')
-        sg.addColorStop(0.50, 'rgba(255,255,255,0.82)')
-        sg.addColorStop(0.62, 'rgba(255,255,255,0)')
-        sg.addColorStop(1,    'rgba(255,255,255,0)')
-        ctx.fillStyle = sg
-        ctx.fillRect(cx - GHALF, cy - GHALF, GHALF * 2, GHALF * 2)
-        ctx.restore()
-      }
-
-      // 허브 펄스 글로우 — 1.8s 주기, globalAlpha로 확실한 밝기 변화
-      {
-        const HR  = 22
-        const now = Date.now() / 1000
-        const pulse = (Math.sin(now * Math.PI * 2 / 1.8) + 1) / 2  // 0→1→0
-
-        // 외부 후광 (허브 테두리 바깥으로 번짐)
-        ctx.save()
-        const og = ctx.createRadialGradient(cx, cy, HR * 0.85, cx, cy, HR + 10)
-        og.addColorStop(0, `rgba(255,210,60,${(0.28 + pulse * 0.37).toFixed(3)})`)
-        og.addColorStop(1, 'rgba(255,180,30,0)')
-        ctx.fillStyle = og
-        ctx.fillRect(cx - HR - 10, cy - HR - 10, (HR + 10) * 2, (HR + 10) * 2)
-        ctx.restore()
-
-        // 허브 면 밝기 오버레이 — 기본 밝기 + 펄스
-        ctx.save()
-        ctx.globalAlpha = 0.20 + pulse * 0.35
-        ctx.beginPath()
-        ctx.arc(cx, cy, HR, 0, Math.PI * 2)
-        ctx.clip()
-        const ig = ctx.createRadialGradient(cx, cy, 0, cx, cy, HR)
-        ig.addColorStop(0,    'rgba(255,255,240,1)')
-        ig.addColorStop(0.55, 'rgba(255,230,140,0.7)')
-        ig.addColorStop(1,    'rgba(255,200,60,0)')
-        ctx.fillStyle = ig
-        ctx.fillRect(cx - HR, cy - HR, HR * 2, HR * 2)
-        ctx.restore()
-
-        // 스파클 2개
-        ctx.save()
-        ctx.beginPath()
-        ctx.arc(cx, cy, HR, 0, Math.PI * 2)
-        ctx.clip()
-        ctx.lineCap = 'round'
-        for (const sp of [
-          { dx: -7, dy: -5, f: 5.2, ph: 0.0 },
-          { dx:  6, dy:  6, f: 4.0, ph: 1.8 },
-        ]) {
-          const v = Math.sin(now * sp.f + sp.ph)
-          if (v < 0.60) continue
-          const sa = (v - 0.60) / 0.40
-          const sz = 0.8 + sa * 2.5
-          ctx.globalAlpha = sa * 0.85
-          ctx.strokeStyle = '#FFD700'
-          ctx.lineWidth   = 1.0
-          ctx.beginPath()
-          ctx.moveTo(cx + sp.dx - sz, cy + sp.dy)
-          ctx.lineTo(cx + sp.dx + sz, cy + sp.dy)
-          ctx.moveTo(cx + sp.dx,      cy + sp.dy - sz)
-          ctx.lineTo(cx + sp.dx,      cy + sp.dy + sz)
-          ctx.stroke()
-        }
-        ctx.restore()
-      }
 
     },
     [prizes, theme]
