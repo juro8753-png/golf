@@ -63,8 +63,8 @@ html, body {
 }
 
 @keyframes triGlow {
-  0%,100% { filter: drop-shadow(0 0 4px rgba(245,200,90,.55)) drop-shadow(0 0 8px rgba(245,200,90,.3)); }
-  50%     { filter: drop-shadow(0 0 10px rgba(245,200,90,.95)) drop-shadow(0 0 20px rgba(245,200,90,.6)); }
+  0%,100% { filter: drop-shadow(0 0 2px rgba(255,210,0,.4)) drop-shadow(0 0 4px rgba(255,180,0,.2)); }
+  50%     { filter: drop-shadow(0 0 14px rgba(255,220,0,1)) drop-shadow(0 0 28px rgba(255,180,0,.85)) drop-shadow(0 0 42px rgba(255,150,0,.5)); }
 }
 
 /* ── 기존 모달 키프레임 ── */
