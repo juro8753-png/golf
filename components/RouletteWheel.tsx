@@ -220,85 +220,29 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
       if (th.hubPulse) {
         const HUB_R = 22
 
-        // ── 3개 링 구조 (바깥→안) ──
-        // 가장 바깥 다크 베이스
-        ctx.beginPath()
-        ctx.arc(cx, cy, HUB_R + 8, 0, 2 * Math.PI)
-        ctx.fillStyle = '#2E1A00'
-        ctx.fill()
-
-        // 링 1: 바깥 골드 링
-        ctx.beginPath()
-        ctx.arc(cx, cy, HUB_R + 7, 0, 2 * Math.PI)
-        ctx.strokeStyle = '#C89010'
-        ctx.lineWidth = 3
-        ctx.stroke()
-
-        // 링 2: 다크 홈 (groove)
+        // 바깥 다크 베이스
         ctx.beginPath()
         ctx.arc(cx, cy, HUB_R + 4, 0, 2 * Math.PI)
-        ctx.strokeStyle = '#5A3800'
-        ctx.lineWidth = 4
-        ctx.stroke()
-
-        // 링 3: 안쪽 골드 링
-        ctx.beginPath()
-        ctx.arc(cx, cy, HUB_R + 1, 0, 2 * Math.PI)
-        ctx.strokeStyle = '#D4A820'
-        ctx.lineWidth = 2.5
-        ctx.stroke()
-
-        // ── 방사형 헤어라인 금속 효과 (선반 가공 스테인리스) ──
-        ctx.save()
-        ctx.beginPath()
-        ctx.arc(cx, cy, HUB_R, 0, 2 * Math.PI)
-        ctx.clip()
-
-        // ① 황금 베이스
-        ctx.beginPath()
-        ctx.arc(cx, cy, HUB_R, 0, 2 * Math.PI)
-        ctx.fillStyle = '#D4A020'
+        ctx.fillStyle = '#1a0800'
         ctx.fill()
 
-        // ② 어두운 선 4개 — 정수 좌표 실선 (두께 고정, 잔상 없음)
-        const DARK_POS = [0, 75, 170, 270].map(d => d * Math.PI / 180)
-        ctx.strokeStyle = 'rgba(60,30,0,0.60)'
+        // 골드 링
+        ctx.beginPath()
+        ctx.arc(cx, cy, HUB_R + 3, 0, 2 * Math.PI)
+        ctx.strokeStyle = '#D4A020'
         ctx.lineWidth = 2
-        ctx.lineCap = 'butt'
-        for (const angle of DARK_POS) {
-          ctx.beginPath()
-          ctx.moveTo(
-            Math.round(cx - Math.cos(angle) * HUB_R),
-            Math.round(cy - Math.sin(angle) * HUB_R)
-          )
-          ctx.lineTo(
-            Math.round(cx + Math.cos(angle) * HUB_R),
-            Math.round(cy + Math.sin(angle) * HUB_R)
-          )
-          ctx.stroke()
-        }
+        ctx.stroke()
 
-        // 중앙 하이라이트 (빛 집중 포인트)
-        const highlight = ctx.createRadialGradient(cx - 4, cy - 6, 0, cx, cy, HUB_R * 0.9)
-        highlight.addColorStop(0,    'rgba(255,255,220,0.55)')
-        highlight.addColorStop(0.30, 'rgba(255,240,160,0.15)')
-        highlight.addColorStop(1,    'rgba(0,0,0,0)')
-        ctx.fillStyle = highlight
-        ctx.fillRect(cx - HUB_R, cy - HUB_R, HUB_R * 2, HUB_R * 2)
-
-        // 가장자리 비네팅
-        const vignette = ctx.createRadialGradient(cx, cy, HUB_R * 0.5, cx, cy, HUB_R)
-        vignette.addColorStop(0, 'rgba(0,0,0,0)')
-        vignette.addColorStop(1, 'rgba(0,0,0,0.22)')
-        ctx.fillStyle = vignette
-        ctx.fillRect(cx - HUB_R, cy - HUB_R, HUB_R * 2, HUB_R * 2)
-
-        ctx.restore()
-
-        // 메인 디스크 테두리
+        // 황금 메인 디스크
         ctx.beginPath()
         ctx.arc(cx, cy, HUB_R, 0, 2 * Math.PI)
-        ctx.strokeStyle = '#B08010'
+        ctx.fillStyle = '#E8C040'
+        ctx.fill()
+
+        // 골드 테두리
+        ctx.beginPath()
+        ctx.arc(cx, cy, HUB_R, 0, 2 * Math.PI)
+        ctx.strokeStyle = '#A07010'
         ctx.lineWidth = 1.5
         ctx.stroke()
 
