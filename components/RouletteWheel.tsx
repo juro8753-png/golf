@@ -376,12 +376,12 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         ctx.restore()
       }
 
-      // 전체 휠 하이라이트 (이동하는 원형 스포트라이트 — 구형 빛 반사 느낌)
+      // 전체 휠 하이라이트 (타원 궤도 공전 — 구형 빛 반사 느낌)
       {
-        const CYCLE = 3.0
-        const pos = Math.cos((Date.now() / 1000) * (Math.PI * 2) / CYCLE)
-        const glowX = cx + radius * 0.68 * pos
-        const glowY = cy - radius * 0.15
+        const CYCLE = 4.5
+        const t = (Date.now() / 1000) * (Math.PI * 2) / CYCLE
+        const glowX = cx + radius * 0.62 * Math.cos(t)
+        const glowY = cy + radius * 0.38 * Math.sin(t)  // Y 압축으로 원근감 타원
         ctx.save()
         ctx.beginPath()
         ctx.arc(cx, cy, radius, 0, 2 * Math.PI)
