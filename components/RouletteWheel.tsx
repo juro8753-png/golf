@@ -375,6 +375,33 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         }
         ctx.restore()
       }
+
+      // 전체 휠 시인 (빛줄기가 왼쪽→오른쪽 지나감)
+      {
+        const PERIOD = 5.0
+        const frac = ((Date.now() / 1000) % PERIOD) / PERIOD
+        const sweep = cx + radius * (-1.6 + frac * 3.2)
+        const BAND = radius * 0.22
+        const angle = 18 * Math.PI / 180
+        const dx = Math.cos(angle)
+        const dy = Math.sin(angle)
+        ctx.save()
+        ctx.beginPath()
+        ctx.arc(cx, cy, radius, 0, 2 * Math.PI)
+        ctx.clip()
+        const sg = ctx.createLinearGradient(
+          sweep - dx * BAND, cy + dy * BAND,
+          sweep + dx * BAND, cy - dy * BAND
+        )
+        sg.addColorStop(0,    'rgba(255,255,255,0)')
+        sg.addColorStop(0.35, 'rgba(255,255,255,0)')
+        sg.addColorStop(0.5,  'rgba(255,255,255,0.22)')
+        sg.addColorStop(0.65, 'rgba(255,255,255,0)')
+        sg.addColorStop(1,    'rgba(255,255,255,0)')
+        ctx.fillStyle = sg
+        ctx.fillRect(cx - radius - 5, cy - radius - 5, (radius + 5) * 2, (radius + 5) * 2)
+        ctx.restore()
+      }
     },
     [prizes, theme]
   )
