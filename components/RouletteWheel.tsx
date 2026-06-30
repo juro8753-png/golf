@@ -219,31 +219,41 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
       // 중심 원
       if (th.hubPulse) {
         const HUB_R = 22
+        const numSlices = 240
 
-        // 바깥 다크 베이스
-        ctx.beginPath()
-        ctx.arc(cx, cy, HUB_R + 4, 0, 2 * Math.PI)
-        ctx.fillStyle = '#1a0800'
-        ctx.fill()
+        // 코닉 그라디언트 — 빛 반사 (4개 어두운 구간)
+        for (let i = 0; i < numSlices; i++) {
+          const a1 = (i / numSlices) * 2 * Math.PI - Math.PI / 2
+          const a2 = ((i + 1.3) / numSlices) * 2 * Math.PI - Math.PI / 2
+          const phase = (i / numSlices) * 2 * Math.PI
+          const base = Math.pow((Math.sin(phase * 4) + 1) / 2, 0.22)
+          const vary = Math.sin(phase * 1.7 + 1.1) * 0.15
+          const t = Math.max(0, Math.min(1, base + vary * (1 - base)))
+          const r = Math.round(220 + t * (255 - 220))
+          const g = Math.round(175 + t * (255 - 175))
+          const b = Math.round(60  + t * (240 - 60))
+          ctx.beginPath()
+          ctx.moveTo(cx, cy)
+          ctx.arc(cx, cy, HUB_R, a1, a2)
+          ctx.closePath()
+          ctx.fillStyle = `rgb(${r},${g},${b})`
+          ctx.fill()
+        }
 
-        // 골드 링
-        ctx.beginPath()
-        ctx.arc(cx, cy, HUB_R + 3, 0, 2 * Math.PI)
-        ctx.strokeStyle = '#D4A020'
-        ctx.lineWidth = 2
-        ctx.stroke()
-
-        // 황금 메인 디스크
+        // 가장자리 어두워지는 오버레이
+        const edgeDark = ctx.createRadialGradient(cx, cy, HUB_R * 0.55, cx, cy, HUB_R)
+        edgeDark.addColorStop(0, 'rgba(0,0,0,0)')
+        edgeDark.addColorStop(1, 'rgba(0,0,0,0.15)')
         ctx.beginPath()
         ctx.arc(cx, cy, HUB_R, 0, 2 * Math.PI)
-        ctx.fillStyle = '#E8C040'
+        ctx.fillStyle = edgeDark
         ctx.fill()
 
         // 골드 테두리
         ctx.beginPath()
         ctx.arc(cx, cy, HUB_R, 0, 2 * Math.PI)
-        ctx.strokeStyle = '#A07010'
-        ctx.lineWidth = 1.5
+        ctx.strokeStyle = '#D4A020'
+        ctx.lineWidth = 2.5
         ctx.stroke()
 
       } else {
