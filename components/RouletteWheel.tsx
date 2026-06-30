@@ -221,24 +221,11 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         const HUB_R = 22
         const numSlices = 240
 
-        // 코닉 그라디언트 — 빛 반사 (4개 어두운 구간)
-        for (let i = 0; i < numSlices; i++) {
-          const a1 = (i / numSlices) * 2 * Math.PI - Math.PI / 2
-          const a2 = ((i + 1.3) / numSlices) * 2 * Math.PI - Math.PI / 2
-          const phase = (i / numSlices) * 2 * Math.PI
-          const base = Math.pow((Math.sin(phase * 4) + 1) / 2, 0.22)
-          const vary = Math.sin(phase * 1.7 + 1.1) * 0.15
-          const t = Math.max(0, Math.min(1, base + vary * (1 - base)))
-          const r = Math.round(220 + t * (255 - 220))
-          const g = Math.round(175 + t * (255 - 175))
-          const b = Math.round(60  + t * (240 - 60))
-          ctx.beginPath()
-          ctx.moveTo(cx, cy)
-          ctx.arc(cx, cy, HUB_R, a1, a2)
-          ctx.closePath()
-          ctx.fillStyle = `rgb(${r},${g},${b})`
-          ctx.fill()
-        }
+        // 단색 크림/아이보리
+        ctx.beginPath()
+        ctx.arc(cx, cy, HUB_R, 0, 2 * Math.PI)
+        ctx.fillStyle = '#FFFFF0'
+        ctx.fill()
 
         // 가장자리 어두워지는 오버레이
         const edgeDark = ctx.createRadialGradient(cx, cy, HUB_R * 0.55, cx, cy, HUB_R)
@@ -249,7 +236,14 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         ctx.fillStyle = edgeDark
         ctx.fill()
 
-        // 골드 테두리
+        // 안쪽 테마 대표색 링
+        ctx.beginPath()
+        ctx.arc(cx, cy, HUB_R - 3, 0, 2 * Math.PI)
+        ctx.strokeStyle = th.bulbOnColor
+        ctx.lineWidth = 2
+        ctx.stroke()
+
+        // 바깥 골드 테두리
         ctx.beginPath()
         ctx.arc(cx, cy, HUB_R, 0, 2 * Math.PI)
         ctx.strokeStyle = '#D4A020'
@@ -322,7 +316,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         ctx.arc(cx, cy, HR, 0, 2 * Math.PI)
         ctx.clip()
 
-        // 허브 전체를 덮는 흰 글로우 (가장자리까지 은은하게)
+        // 허브 전체 깜빡임 글로우 (흰색 유지 — 배경색 안 바뀜)
         const rg = ctx.createRadialGradient(cx, cy, 0, cx, cy, HR)
         rg.addColorStop(0,    `rgba(255,255,255,${alpha.toFixed(3)})`)
         rg.addColorStop(0.65, `rgba(255,255,210,${(alpha * 0.65).toFixed(3)})`)
@@ -330,7 +324,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         ctx.fillStyle = rg
         ctx.fillRect(cx - HR, cy - HR, HR * 2, HR * 2)
 
-        // 작은 스파클 2개 (독립 주파수로 따로따로 깜빡임)
+        // 작은 스파클 2개 (황금색)
         ctx.lineCap = 'round'
         for (const sp of [
           { dx: -7, dy: -5, f: 5.2, ph: 0.0 },
@@ -341,7 +335,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
           const sa = (v - 0.60) / 0.40
           const sz = 0.8 + sa * 2.5
           ctx.globalAlpha = sa * 0.85
-          ctx.strokeStyle = 'white'
+          ctx.strokeStyle = '#FFD700'
           ctx.lineWidth   = 1.0
           ctx.beginPath()
           ctx.moveTo(cx + sp.dx - sz, cy + sp.dy)
@@ -558,7 +552,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
             height: 0,
             borderLeft: '17px solid transparent',
             borderRight: '17px solid transparent',
-            borderTop: '34px solid rgba(180,100,0,0.5)',
+            borderTop: '34px solid rgba(255,215,0,0.75)',
           }} />
           <div style={{
             position: 'relative',
