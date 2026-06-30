@@ -376,24 +376,6 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         ctx.restore()
       }
 
-      // 전체 휠 하이라이트 (타원 궤도 공전 — 구형 빛 반사 느낌)
-      {
-        const t = (Date.now() / 1000) * (Math.PI * 2) / 1.8
-        const glowX = cx + radius * 0.62 * Math.cos(t)
-        const glowY = cy + radius * 0.38 * Math.sin(t)
-        ctx.save()
-        ctx.beginPath()
-        ctx.arc(cx, cy, radius, 0, 2 * Math.PI)
-        ctx.clip()
-        const rg = ctx.createRadialGradient(glowX, glowY, 0, glowX, glowY, radius * 0.70)
-        rg.addColorStop(0,    'rgba(255,252,225,0.52)')
-        rg.addColorStop(0.35, 'rgba(255,252,225,0.24)')
-        rg.addColorStop(0.70, 'rgba(255,252,225,0.07)')
-        rg.addColorStop(1,    'rgba(255,252,225,0)')
-        ctx.fillStyle = rg
-        ctx.fillRect(cx - radius - 5, cy - radius - 5, (radius + 5) * 2, (radius + 5) * 2)
-        ctx.restore()
-      }
     },
     [prizes, theme]
   )
