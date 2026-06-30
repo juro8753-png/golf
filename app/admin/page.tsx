@@ -5,11 +5,6 @@ import { AdminStats, Prize } from '@/types'
 import { WHEEL_THEMES, getSavedTheme, saveTheme, type ThemeKey } from '@/lib/wheel-themes'
 import DailyLimitCalendar from '@/components/DailyLimitCalendar'
 
-const COLORS = [
-  '#AAAAAA', '#FFD700', '#FF6384', '#36A2EB',
-  '#4BC0C0', '#9966FF', '#FF9F40', '#66BB6A',
-]
-
 const emptyForm = {
   name: '',
   total_quantity: '',
@@ -274,7 +269,6 @@ export default function AdminDashboard() {
                   <td className="px-3 py-3 text-gray-400 hidden sm:table-cell">{p.display_order}</td>
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ background: p.color }} />
                       <span className="font-medium">{p.name}</span>
                       {p.is_consolation && <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">꽝</span>}
                       {p.is_unlimited && <span className="text-xs bg-blue-50 text-blue-500 px-1.5 py-0.5 rounded-full">무제한</span>}
@@ -353,7 +347,7 @@ export default function AdminDashboard() {
       <div className="space-y-3">
         <h2 className="text-xl font-bold text-gray-800">룰렛 디자인</h2>
         <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
-          {(Object.values(WHEEL_THEMES)).map(th => {
+          {(Object.values(WHEEL_THEMES).filter(th => !['neon_purple', 'fortune_gold', 'royal_gold', 'standard'].includes(th.key))).map(th => {
             const [bg, c1, c2] = th.previewColors
             const isSelected = selectedTheme === th.key
             return (
@@ -424,19 +418,6 @@ export default function AdminDashboard() {
                   value={form.display_order}
                   onChange={e => setForm(f => ({ ...f, display_order: e.target.value }))}
                 />
-              </Field>
-
-              <Field label="색상">
-                <div className="flex gap-2 flex-wrap">
-                  {COLORS.map(c => (
-                    <button
-                      key={c}
-                      className={`w-8 h-8 rounded-full border-4 transition-transform ${form.color === c ? 'border-gray-800 scale-110' : 'border-transparent'}`}
-                      style={{ background: c }}
-                      onClick={() => setForm(f => ({ ...f, color: c }))}
-                    />
-                  ))}
-                </div>
               </Field>
 
               <div className="flex gap-6">

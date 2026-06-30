@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import ColorfulFireworksBackground from '@/components/ColorfulFireworksBackground'
 import SparklesOverlay from '@/components/SparklesOverlay'
+import { soundEngine } from '@/lib/sounds'
 
 
 function playChime() {
@@ -167,7 +168,7 @@ export default function LandingPage() {
           {/* CTA 버튼 */}
           <div style={{ marginTop: 36, display: 'flex', justifyContent: 'center', width: '100%' }}>
             <button
-              onClick={() => { playChime(); setTimeout(() => router.push('/roulette'), 350) }}
+              onClick={() => { soundEngine.bgStart(); playChime(); setTimeout(() => router.push('/roulette'), 350) }}
               style={{
                 width: '75%',
                 padding: '17px 20px',

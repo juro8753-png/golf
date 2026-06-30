@@ -1,5 +1,7 @@
 class SoundEngine {
   private ctx: AudioContext | null = null
+  private bgAudio: HTMLAudioElement | null = null
+  private bgFadeTimer: ReturnType<typeof setTimeout> | null = null
 
   private get ac(): AudioContext {
     if (!this.ctx) this.ctx = new AudioContext()
@@ -111,6 +113,56 @@ class SoundEngine {
     const audio = new Audio('/sounds/win_normal.mp3')
     audio.volume = 1.0
     audio.play().catch(() => {})
+  }
+
+  bgStart() {
+    if (!this.bgAudio) {
+      this.bgAudio = new Audio('/sounds/bg_music.mp3')
+      this.bgAudio.loop = true
+      this.bgAudio.preload = 'auto'
+      this.bgAudio.volume = 0.4
+    }
+    if (this.bgFadeTimer) clearTimeout(this.bgFadeTimer)
+    this.bgAudio.volume = 0.4
+    if (this.bgAudio.paused) {
+      this.bgAudio.currentTime = 0
+      this.bgAudio.play().catch((e) => console.error('[bgMusic] play failed:', e))
+    }
+  }
+
+  bgDuck(duckDuration = 4000) {
+    if (!this.bgAudio) return
+    if (this.bgFadeTimer) clearTimeout(this.bgFadeTimer)
+    this.bgAudio.volume = 0.08
+    this.bgFadeTimer = setTimeout(() => {
+      this._bgFadeIn(0.08, 0.4, 1500)
+    }, duckDuration)
+  }
+
+  private _bgFadeIn(from: number, to: number, duration: number) {
+    if (!this.bgAudio) return
+    const steps = 30
+    const interval = duration / steps
+    const step = (to - from) / steps
+    let current = from
+    const timer = setInterval(() => {
+      if (!this.bgAudio) { clearInterval(timer); return }
+      current = Math.min(current + step, to)
+      this.bgAudio.volume = current
+      if (current >= to) clearInterval(timer)
+    }, interval)
+  }
+
+  bgStop() {
+    if (!this.bgAudio) return
+    if (this.bgFadeTimer) clearTimeout(this.bgFadeTimer)
+    const audio = this.bgAudio
+    let vol = audio.volume
+    const timer = setInterval(() => {
+      vol = Math.max(vol - 0.05, 0)
+      audio.volume = vol
+      if (vol <= 0) { clearInterval(timer); audio.pause() }
+    }, 50)
   }
 
   // MP3 TTS 재생

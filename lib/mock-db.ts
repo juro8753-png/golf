@@ -44,6 +44,7 @@ export const db = {
     },
 
     async delete(id: number): Promise<boolean> {
+      await supabaseAdmin.from('spin_results').update({ prize_id: null }).eq('prize_id', id)
       const { error } = await supabaseAdmin
         .from('prizes')
         .delete()

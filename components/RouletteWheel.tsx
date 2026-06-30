@@ -24,7 +24,7 @@ interface ConfettiParticle {
   opacity: number
 }
 
-const SPIN_DURATION = 5000
+const SPIN_DURATION = 7000
 const MIN_ROTATIONS = 8
 
 function easeOut(t: number): number {
@@ -150,15 +150,15 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         if (th.segGradient) {
           const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, radius)
           if (i % 2 === 0) {
-            grad.addColorStop(0,    '#FFFFFF')
-            grad.addColorStop(0.7,  '#FFFDF5')
-            grad.addColorStop(0.9,  '#FFF0C0')
-            grad.addColorStop(1,    '#C8A050')
+            grad.addColorStop(0,    th.segEvenFillBright ?? '#FFFFFF')
+            grad.addColorStop(0.96, th.segEvenFillBright ?? '#FFFFFF')
+            grad.addColorStop(0.98, th.segEvenFill)
+            grad.addColorStop(1,    th.segEvenFillDark   ?? th.segEvenFill)
           } else {
-            grad.addColorStop(0,    '#FF9898')
-            grad.addColorStop(0.7,  '#FF6060')
-            grad.addColorStop(0.9,  '#DD2020')
-            grad.addColorStop(1,    '#8B1010')
+            grad.addColorStop(0,    th.segOddFillBright  ?? '#FFFFFF')
+            grad.addColorStop(0.96, th.segOddFillBright  ?? '#FFFFFF')
+            grad.addColorStop(0.98, th.segOddFill)
+            grad.addColorStop(1,    th.segOddFillDark    ?? th.segOddFill)
           }
           ctx.fillStyle = grad
         } else {
@@ -474,6 +474,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
 
     setSpinning(true)
     setShowModal(false)
+    soundEngine.bgStart()
 
     let spinResponse: SpinResponse
     try {
@@ -485,6 +486,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
       spinResponse = await res.json()
     } catch (e) {
       setSpinning(false)
+      soundEngine.bgStop()
       alert((e as Error).message || '추첨 중 오류가 발생했습니다.')
       return
     }
@@ -533,17 +535,22 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         setResult(spinResponse)
         setShowModal(true)
         if (spinResponse.prize.is_consolation) {
+          soundEngine.bgDuck(2500)
           soundEngine.consolation()
         } else if (rank === 0) {
+          soundEngine.bgDuck(7000)
           soundEngine.winGrand()
           soundEngine.playTTS('/sounds/tts_1st.mp3', 800)
         } else if (rank === 1) {
+          soundEngine.bgDuck(5000)
           soundEngine.win2nd()
           soundEngine.playTTS('/sounds/tts_2nd.mp3', 500)
         } else if (rank === 2) {
+          soundEngine.bgDuck(4500)
           soundEngine.winNormal()
           soundEngine.playTTS('/sounds/tts_3rd.mp3', 500)
         } else {
+          soundEngine.bgDuck(3500)
           soundEngine.winNormal()
         }
         if (!spinResponse.prize.is_consolation) startConfetti()
