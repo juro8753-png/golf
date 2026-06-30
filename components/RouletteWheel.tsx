@@ -542,7 +542,10 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
 
       {/* 휠 + 포인터 */}
       <div className="relative flex items-center justify-center" style={{ marginTop: '36px' }}>
-        <div className="absolute pointer-events-none" style={{ zIndex: 10, top: -22, left: '50%', transform: 'translateX(-50%)' }}>
+        <div className="absolute pointer-events-none" style={{
+          zIndex: 10, top: -22, left: '50%', transform: 'translateX(-50%)',
+          animation: 'triGlow 2.2s ease-in-out infinite',
+        }}>
           <div style={{
             position: 'absolute',
             top: -2,
@@ -561,7 +564,6 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
             borderLeft: '13px solid transparent',
             borderRight: '13px solid transparent',
             borderTop: '28px solid #FFD700',
-            animation: 'triGlow 2.2s ease-in-out infinite',
           }} />
         </div>
         <canvas
