@@ -350,42 +350,6 @@ export default function AdminDashboard() {
       {/* 일별 참여 제한 달력 */}
       <DailyLimitCalendar />
 
-      {/* 배경 색상 선택 */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-bold text-gray-800">배경 색상</h2>
-        {([
-          { label: '랜딩페이지', selected: selectedLandingBg, storageKey: LANDING_BG_KEY, setter: setSelectedLandingBg },
-          { label: '룰렛페이지', selected: selectedRouletteBg, storageKey: ROULETTE_BG_KEY, setter: setSelectedRouletteBg },
-        ] as const).map(({ label, selected, storageKey, setter }) => (
-          <div key={label} className="space-y-2">
-            <p className="text-sm font-semibold text-gray-600">{label}</p>
-            <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
-              {Object.values(BG_THEMES).map(bg => {
-                const isSelected = selected === bg.key
-                return (
-                  <button
-                    key={bg.key}
-                    onClick={() => { saveBg(storageKey, bg.key); setter(bg.key) }}
-                    className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all shrink-0 ${
-                      isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-400 bg-white'
-                    }`}
-                  >
-                    <div
-                      className="w-16 h-10 rounded-lg"
-                      style={{ background: bg.gradient }}
-                    />
-                    <span className={`text-xs font-bold ${isSelected ? 'text-blue-600' : 'text-gray-600'}`}>
-                      {bg.name}
-                    </span>
-                    {isSelected && <span className="text-xs text-blue-400">✓ 적용중</span>}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        ))}
-      </div>
-
       {/* 룰렛 디자인 선택 */}
       <div className="space-y-3">
         <h2 className="text-xl font-bold text-gray-800">룰렛 디자인</h2>
@@ -422,6 +386,42 @@ export default function AdminDashboard() {
             )
           })}
         </div>
+      </div>
+
+      {/* 배경 색상 선택 */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold text-gray-800">배경 색상</h2>
+        {([
+          { label: '랜딩페이지', selected: selectedLandingBg, storageKey: LANDING_BG_KEY, setter: setSelectedLandingBg },
+          { label: '룰렛페이지', selected: selectedRouletteBg, storageKey: ROULETTE_BG_KEY, setter: setSelectedRouletteBg },
+        ] as const).map(({ label, selected, storageKey, setter }) => (
+          <div key={label} className="space-y-2">
+            <p className="text-sm font-semibold text-gray-600">{label}</p>
+            <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+              {Object.values(BG_THEMES).map(bg => {
+                const isSelected = selected === bg.key
+                return (
+                  <button
+                    key={bg.key}
+                    onClick={() => { saveBg(storageKey, bg.key); setter(bg.key) }}
+                    className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all shrink-0 ${
+                      isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-400 bg-white'
+                    }`}
+                  >
+                    <div
+                      className="w-16 h-10 rounded-lg"
+                      style={{ background: bg.gradient }}
+                    />
+                    <span className={`text-xs font-bold ${isSelected ? 'text-blue-600' : 'text-gray-600'}`}>
+                      {bg.name}
+                    </span>
+                    {isSelected && <span className="text-xs text-blue-400">✓ 적용중</span>}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* 상품 추가/수정 모달 */}
