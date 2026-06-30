@@ -58,6 +58,26 @@ export default function Home() {
       <FireworksBackground />
       <SparklesOverlay />
 
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          objectPosition: 'center 20%',
+          mixBlendMode: 'screen',
+          opacity: 0.7,
+          zIndex: 0,
+          pointerEvents: 'none',
+        }}
+      >
+        <source src="/videos/stage-lights-4.mp4" type="video/mp4" />
+      </video>
 
       <div
         className="absolute inset-0 pointer-events-none"
