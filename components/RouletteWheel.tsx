@@ -313,6 +313,37 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         ctx.fillStyle = th.hubInnerFill
         ctx.fill()
       }
+
+      // 허브 시인 — 우→좌 광택 스윕 후 멈춤 (버튼과 동일 주기)
+      {
+        const HR    = 22
+        const CYCLE = 3.2
+        const SDUR  = 0.72
+        const t     = (Date.now() / 1000) % CYCLE
+        if (t < SDUR) {
+          const p    = t / SDUR
+          const ease = p < 0.5 ? 2*p*p : 1 - Math.pow(-2*p+2, 2)/2
+          const sx   = cx + HR * (0.9 - ease * 1.8)   // right → left
+          const a    = 15 * Math.PI / 180               // 105deg CSS = 15deg 기울기
+          const bw   = HR * 0.9
+          ctx.save()
+          ctx.beginPath()
+          ctx.arc(cx, cy, HR, 0, 2 * Math.PI)
+          ctx.clip()
+          const sg = ctx.createLinearGradient(
+            sx - Math.cos(a) * bw, cy + Math.sin(a) * bw,
+            sx + Math.cos(a) * bw, cy - Math.sin(a) * bw
+          )
+          sg.addColorStop(0,    'rgba(255,255,255,0)')
+          sg.addColorStop(0.35, 'rgba(255,255,255,0)')
+          sg.addColorStop(0.5,  'rgba(255,255,255,0.80)')
+          sg.addColorStop(0.65, 'rgba(255,255,255,0)')
+          sg.addColorStop(1,    'rgba(255,255,255,0)')
+          ctx.fillStyle = sg
+          ctx.fillRect(cx - HR, cy - HR, HR * 2, HR * 2)
+          ctx.restore()
+        }
+      }
     },
     [prizes, theme]
   )
