@@ -188,8 +188,15 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
 
       ctx.restore()
 
-      // 림 오로라/먹물 효과
-      if (th.hubPulse) {
+      // 림 오로라/먹물 효과 — 모든 테마, 테마 고유색 사용
+      {
+        const hx = (hex: string) => ({
+          r: parseInt(hex.slice(1, 3), 16),
+          g: parseInt(hex.slice(3, 5), 16),
+          b: parseInt(hex.slice(5, 7), 16),
+        })
+        const mc = hx(th.bulbOnColor)
+        const rc = th.rimRingColor !== 'none' ? hx(th.rimRingColor) : mc
         const t = Date.now() / 1333
         ctx.save()
         ctx.beginPath()
@@ -197,12 +204,12 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         ctx.arc(cx, cy, radius, 0, 2 * Math.PI, true)
         ctx.clip('evenodd' as CanvasFillRule)
         const blobs = [
-          { r: 255, g: 180, b:   0, speed:  1.0, sz: 30, op: 0.58 },
-          { r: 140, g:  40, b: 255, speed: -0.6, sz: 34, op: 0.40 },
-          { r: 255, g: 120, b:   0, speed:  1.5, sz: 26, op: 0.48 },
-          { r: 100, g:  20, b: 200, speed: -1.0, sz: 32, op: 0.34 },
-          { r: 255, g: 220, b:  50, speed:  0.7, sz: 22, op: 0.52 },
-          { r: 200, g:   0, b: 255, speed: -1.3, sz: 28, op: 0.30 },
+          { r: mc.r, g: mc.g, b: mc.b, speed:  1.0, sz: 30, op: 0.58 },
+          { r: 140,  g:  40,  b: 255,  speed: -0.6, sz: 34, op: 0.40 },
+          { r: mc.r, g: mc.g, b: mc.b, speed:  1.5, sz: 26, op: 0.48 },
+          { r: rc.r, g: rc.g, b: rc.b, speed: -1.0, sz: 32, op: 0.34 },
+          { r: mc.r, g: mc.g, b: mc.b, speed:  0.7, sz: 22, op: 0.52 },
+          { r: 200,  g:   0,  b: 255,  speed: -1.3, sz: 28, op: 0.30 },
         ]
         blobs.forEach((bl, idx) => {
           const a = (idx / blobs.length) * Math.PI * 2 + t * bl.speed
@@ -245,21 +252,33 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
       }
       ctx.shadowBlur = 0
 
-      // 중심 원
-      if (th.hubPulse) {
+      // 중심 원 — 모든 테마 통일 구조, 테마 고유색 사용
+      {
         const HUB_R = 22
-        const numSlices = 240
+        const borderCol = th.rimRingColor !== 'none' ? th.rimRingColor : th.hubInnerStroke
 
-        // 단색 크림/아이보리
+        // neon 테마: 외부 글로우
+        if (th.neonGlow) {
+          ctx.beginPath()
+          ctx.arc(cx, cy, HUB_R + 2, 0, 2 * Math.PI)
+          ctx.shadowColor = th.hubInnerStroke
+          ctx.shadowBlur = 25
+          ctx.strokeStyle = th.hubInnerStroke
+          ctx.lineWidth = 3
+          ctx.stroke()
+          ctx.shadowBlur = 0
+        }
+
+        // 베이스 채우기 (테마 고유색)
         ctx.beginPath()
         ctx.arc(cx, cy, HUB_R, 0, 2 * Math.PI)
-        ctx.fillStyle = '#FFFFF0'
+        ctx.fillStyle = th.hubInnerFill
         ctx.fill()
 
         // 가장자리 어두워지는 오버레이
         const edgeDark = ctx.createRadialGradient(cx, cy, HUB_R * 0.55, cx, cy, HUB_R)
         edgeDark.addColorStop(0, 'rgba(0,0,0,0)')
-        edgeDark.addColorStop(1, 'rgba(0,0,0,0.15)')
+        edgeDark.addColorStop(1, 'rgba(0,0,0,0.18)')
         ctx.beginPath()
         ctx.arc(cx, cy, HUB_R, 0, 2 * Math.PI)
         ctx.fillStyle = edgeDark
@@ -272,35 +291,12 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
         ctx.lineWidth = 2
         ctx.stroke()
 
-        // 바깥 골드 테두리
+        // 바깥 테두리 (테마 링 색상)
         ctx.beginPath()
         ctx.arc(cx, cy, HUB_R, 0, 2 * Math.PI)
-        ctx.strokeStyle = '#D4A020'
+        ctx.strokeStyle = borderCol
         ctx.lineWidth = 2.5
         ctx.stroke()
-
-      } else {
-        if (th.neonGlow) {
-          ctx.beginPath()
-          ctx.arc(cx, cy, 24, 0, 2 * Math.PI)
-          ctx.shadowColor = th.hubInnerStroke
-          ctx.shadowBlur = 25
-          ctx.strokeStyle = th.hubInnerStroke
-          ctx.lineWidth = 3
-          ctx.stroke()
-          ctx.shadowBlur = 0
-        }
-        ctx.beginPath()
-        ctx.arc(cx, cy, 22, 0, 2 * Math.PI)
-        ctx.fillStyle = th.hubOuterFill
-        ctx.fill()
-        ctx.strokeStyle = th.hubInnerStroke
-        ctx.lineWidth = 3
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.arc(cx, cy, 8, 0, 2 * Math.PI)
-        ctx.fillStyle = th.hubInnerFill
-        ctx.fill()
       }
 
       // 허브 시인 — 쉬지 않고 우↔좌 왔다갔다 (코사인 파형)
