@@ -751,90 +751,127 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
     setSpinning(true)
     setShowModal(false)
 
-    let spinResponse: SpinResponse
-    try {
-      const res = await fetch('/api/spin', { method: 'POST' })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error || '서버 오류')
-      }
-      spinResponse = await res.json()
-    } catch (e) {
-      setSpinning(false)
-      soundEngine.bgStop()
-      alert((e as Error).message || '추첨 중 오류가 발생했습니다.')
-      return
-    }
-
-    soundEngine.spinStart()
-
-    const { segmentIndex } = spinResponse
     const n = prizes.length
     const segAngle = (2 * Math.PI) / n
 
-    const curNorm = ((rotationRef.current % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)
-    const targetBase = ((-segmentIndex * segAngle) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI)
-    let delta = (targetBase - curNorm + 2 * Math.PI) % (2 * Math.PI)
-    if (delta < 0.2) delta += 2 * Math.PI
+    // API 요청과 애니메이션을 동시에 시작
+    const fetchPromise = fetch('/api/spin', { method: 'POST' })
 
-    const finalRotation = rotationRef.current + delta + 2 * Math.PI * MIN_ROTATIONS
+    soundEngine.spinStart()
+
     const startRotation = rotationRef.current
     const startTime = performance.now()
     lastTickSegRef.current = -1
 
-    // 등수 판별: 비꽝을 display_order 순으로 정렬
-    const nonConsolation = prizes.filter(p => !p.is_consolation).sort((a, b) => a.display_order - b.display_order)
-    const rank = nonConsolation.findIndex(p => p.id === spinResponse.prize.id)
-    // rank 0 = 1등, rank 1 = 2등, rank 2+ = 3등 이하
+    // API 응답 후 채워질 상태 (클로저로 공유)
+    let apiResult: SpinResponse | null = null
+    let finalRotation = 0
+    let decelStartTime = 0
+    let decelStartRotation = 0
+
+    // 가속 단계: RAMP_DURATION ms 동안 최고속도까지 가속
+    const RAMP_DURATION = 700
+    const TOP_SPEED = (MIN_ROTATIONS * 2 * Math.PI) / SPIN_DURATION // rad/ms
 
     const animate = (now: number) => {
-      const elapsed = now - startTime
-      const t = Math.min(elapsed / SPIN_DURATION, 1)
-      const newRotation = startRotation + (finalRotation - startRotation) * easeOut(t)
+      if (apiResult === null) {
+        // 로딩 중: 부드럽게 가속 후 최고속도 유지
+        const elapsed = now - startTime
+        const rot = elapsed < RAMP_DURATION
+          ? startRotation + 0.5 * TOP_SPEED * (elapsed * elapsed / RAMP_DURATION)
+          : startRotation + 0.5 * TOP_SPEED * RAMP_DURATION + TOP_SPEED * (elapsed - RAMP_DURATION)
 
-      // 세그먼트 경계 넘을 때 틱 소리
-      const curSeg = Math.floor(((newRotation % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI) / segAngle)
-      if (curSeg !== lastTickSegRef.current) {
-        soundEngine.tick(1 - easeOut(t))
-        lastTickSegRef.current = curSeg
-      }
+        rotationRef.current = rot
 
-      rotationRef.current = newRotation
-      drawWheel(rotationRef.current)
+        const curSeg = Math.floor(((rot % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI) / segAngle)
+        if (curSeg !== lastTickSegRef.current) {
+          soundEngine.tick(0.25)
+          lastTickSegRef.current = curSeg
+        }
 
-      if (t < 1) {
+        drawWheel(rot)
         animFrameRef.current = requestAnimationFrame(animate)
       } else {
-        rotationRef.current = finalRotation
-        setSpinning(false)
-        setResult(spinResponse)
-        setShowModal(true)
-        if (spinResponse.prize.is_consolation) {
-          soundEngine.bgDuck(2500)
-          soundEngine.consolation()
-        } else if (rank === 0) {
-          soundEngine.bgDuck(7000)
-          soundEngine.winGrand()
-          soundEngine.playTTS('/sounds/tts_1st.mp3', 800)
-        } else if (rank === 1) {
-          soundEngine.bgDuck(5000)
-          soundEngine.win2nd()
-          soundEngine.playTTS('/sounds/tts_2nd.mp3', 500)
-        } else if (rank === 2) {
-          soundEngine.bgDuck(4500)
-          soundEngine.winNormal()
-          soundEngine.playTTS('/sounds/tts_3rd.mp3', 500)
-        } else {
-          soundEngine.bgDuck(3500)
-          soundEngine.winNormal()
+        // API 응답 완료: 목표 세그먼트로 easeOut 감속
+        const elapsed = now - decelStartTime
+        const t = Math.min(elapsed / SPIN_DURATION, 1)
+        const newRotation = decelStartRotation + (finalRotation - decelStartRotation) * easeOut(t)
+
+        const curSeg = Math.floor(((newRotation % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI) / segAngle)
+        if (curSeg !== lastTickSegRef.current) {
+          soundEngine.tick(1 - easeOut(t))
+          lastTickSegRef.current = curSeg
         }
-        if (!spinResponse.prize.is_consolation) startConfetti()
-        setTodayCount(c => c + 1)
-        onSpinComplete()
+
+        rotationRef.current = newRotation
+        drawWheel(newRotation)
+
+        if (t < 1) {
+          animFrameRef.current = requestAnimationFrame(animate)
+        } else {
+          rotationRef.current = finalRotation
+          setSpinning(false)
+          const response = apiResult
+          setResult(response)
+          setShowModal(true)
+
+          const nonConsolation = prizes.filter(p => !p.is_consolation).sort((a, b) => a.display_order - b.display_order)
+          const rank = nonConsolation.findIndex(p => p.id === response.prize.id)
+
+          if (response.prize.is_consolation) {
+            soundEngine.bgDuck(2500)
+            soundEngine.consolation()
+          } else if (rank === 0) {
+            soundEngine.bgDuck(7000)
+            soundEngine.winGrand()
+            soundEngine.playTTS('/sounds/tts_1st.mp3', 800)
+          } else if (rank === 1) {
+            soundEngine.bgDuck(5000)
+            soundEngine.win2nd()
+            soundEngine.playTTS('/sounds/tts_2nd.mp3', 500)
+          } else if (rank === 2) {
+            soundEngine.bgDuck(4500)
+            soundEngine.winNormal()
+            soundEngine.playTTS('/sounds/tts_3rd.mp3', 500)
+          } else {
+            soundEngine.bgDuck(3500)
+            soundEngine.winNormal()
+          }
+          if (!response.prize.is_consolation) startConfetti()
+          setTodayCount(c => c + 1)
+          onSpinComplete()
+        }
       }
     }
 
     animFrameRef.current = requestAnimationFrame(animate)
+
+    // API 응답 처리 (애니메이션과 병렬)
+    try {
+      const res = await fetchPromise
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || '서버 오류')
+      }
+      const spinResponse: SpinResponse = await res.json()
+
+      // 현재 휠 위치에서 목표 세그먼트까지의 감속 계산
+      const curRotation = rotationRef.current
+      const curNorm = ((curRotation % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)
+      const targetBase = ((-spinResponse.segmentIndex * segAngle) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI)
+      let delta = (targetBase - curNorm + 2 * Math.PI) % (2 * Math.PI)
+      if (delta < 0.2) delta += 2 * Math.PI
+
+      decelStartTime = performance.now()
+      decelStartRotation = curRotation
+      finalRotation = curRotation + delta + 2 * Math.PI * MIN_ROTATIONS
+      apiResult = spinResponse
+    } catch (e) {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
+      setSpinning(false)
+      soundEngine.bgStop()
+      alert((e as Error).message || '추첨 중 오류가 발생했습니다.')
+    }
   }
 
   const isWin = result && !result.prize.is_consolation
@@ -991,7 +1028,7 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
               </>
             )}
             <button
-              onClick={() => setShowModal(false)}
+              onClick={() => router.push('/')}
               className="w-full py-4 bg-gray-800 hover:bg-gray-700 text-white text-xl font-bold rounded-2xl transition-colors"
             >
               확인

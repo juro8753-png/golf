@@ -37,6 +37,7 @@ export default function LandingPage() {
 
   useEffect(() => {
     setBgGradient(BG_THEMES[getSavedBg(LANDING_BG_KEY)].gradient)
+    router.prefetch('/roulette')
     const onChange = () => setIsFullscreen(!!document.fullscreenElement)
     document.addEventListener('fullscreenchange', onChange)
     return () => document.removeEventListener('fullscreenchange', onChange)
@@ -171,7 +172,7 @@ export default function LandingPage() {
           {/* CTA 버튼 */}
           <div style={{ marginTop: 36, display: 'flex', justifyContent: 'center', width: '100%' }}>
             <button
-              onClick={() => { playChime(); setTimeout(() => router.push('/roulette'), 350) }}
+              onClick={() => { playChime(); setTimeout(() => router.push('/roulette'), 100) }}
               style={{
                 width: '75%',
                 padding: '17px 20px',

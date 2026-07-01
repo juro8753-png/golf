@@ -120,10 +120,10 @@ class SoundEngine {
       this.bgAudio = new Audio('/sounds/bg_music.mp3')
       this.bgAudio.loop = true
       this.bgAudio.preload = 'auto'
-      this.bgAudio.volume = 0.4
+      this.bgAudio.volume = 0.8
     }
     if (this.bgFadeTimer) clearTimeout(this.bgFadeTimer)
-    this.bgAudio.volume = 0.4
+    this.bgAudio.volume = 0.8
     if (this.bgAudio.paused) {
       this.bgAudio.play().catch((e) => console.error('[bgMusic] play failed:', e))
     }
@@ -140,7 +140,7 @@ class SoundEngine {
     if (this.bgFadeTimer) clearTimeout(this.bgFadeTimer)
     this.bgAudio.volume = 0.08
     this.bgFadeTimer = setTimeout(() => {
-      this._bgFadeIn(0.08, 0.4, 1500)
+      this._bgFadeIn(0.08, 0.8, 1500)
     }, duckDuration)
   }
 
