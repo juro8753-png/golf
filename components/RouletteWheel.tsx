@@ -148,9 +148,9 @@ export default function RouletteWheel({ prizes, onSpinComplete }: Props) {
           ctx.beginPath()
           ctx.moveTo(x1, y1)
           ctx.lineTo(x2, y2)
-          ctx.strokeStyle = goldGrad(x1, y1, x2, y2)
-          ctx.lineWidth = 5 * s
-          ctx.lineCap = 'round'
+          ctx.strokeStyle = '#c89a36'
+          ctx.lineWidth = 4 * s
+          ctx.lineCap = 'butt'
           ctx.stroke()
         })
 
