@@ -115,27 +115,47 @@ export default function LandingPage() {
               style={{
                 color: '#ffffff',
                 fontSize: 32,
-                fontWeight: 800,
-                letterSpacing: '-0.01em',
+                fontWeight: 900,
+                fontFamily: "'Song Myung', 'Gungsuh', '궁서', serif",
+                letterSpacing: '0.02em',
                 textShadow: '0 2px 10px rgba(0,0,0,0.65)',
               }}
             >
               날마다
             </span>
-            <span
-              style={{
-                color: '#f5c832',
-                fontSize: 92,
-                fontWeight: 900,
-                lineHeight: 1,
-                fontFamily: "'Noto Serif KR', serif",
-                textShadow: '0 0 22px rgba(245,200,90,0.75), 0 2px 6px rgba(0,0,0,0.55)',
-                animation: 'fukPulse 2.6s ease-in-out infinite',
-                display: 'inline-block',
-                transform: 'translateY(-10px)',
-              }}
-            >
-              福
+            <span style={{ position: 'relative', display: 'inline-block', transform: 'translateY(-10px)' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/sunburst.png"
+                alt=""
+                style={{
+                  position: 'absolute',
+                  top: -30,
+                  right: -30,
+                  width: 80,
+                  height: 80,
+                  pointerEvents: 'none',
+                  mixBlendMode: 'screen',
+                  zIndex: 2,
+                  transform: 'rotate(90deg)',
+                }}
+              />
+              <span
+                style={{
+                  color: '#f5c832',
+                  fontSize: 92,
+                  fontWeight: 900,
+                  lineHeight: 1,
+                  fontFamily: "'Noto Serif KR', serif",
+                  textShadow: '0 0 22px rgba(245,200,90,0.75), 0 2px 6px rgba(0,0,0,0.55)',
+                  animation: 'fukPulse 2.6s ease-in-out infinite',
+                  display: 'inline-block',
+                  position: 'relative',
+                  zIndex: 1,
+                }}
+              >
+                福
+              </span>
             </span>
           </div>
 
@@ -143,30 +163,51 @@ export default function LandingPage() {
           <div
             style={{
               color: '#ffffff',
-              fontSize: 32,
-              fontWeight: 800,
-              letterSpacing: '-0.01em',
+              fontSize: 36,
+              fontWeight: 900,
+              fontFamily: "'Song Myung', 'Gungsuh', '궁서', serif",
+              letterSpacing: '0.02em',
               textShadow: '0 2px 10px rgba(0,0,0,0.65)',
-              marginTop: 6,
+              marginTop: 4,
               textAlign: 'center',
             }}
           >
             나눔 이벤트
           </div>
 
-          {/* 서브타이틀 */}
-          <div
-            style={{
-              color: 'rgba(255,255,255,0.88)',
-              fontSize: 15,
-              fontWeight: 400,
-              letterSpacing: '0.02em',
-              marginTop: 22,
-              textAlign: 'center',
+          {/* 서브타이틀 + 월계수 */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 22 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/laurel-branch.png"
+              alt=""
+              style={{
+                height: 22,
+                width: 'auto',
+                filter: 'invert(1) sepia(0.9) saturate(8) hue-rotate(12deg) brightness(0.82)',
+              }}
+            />
+            <span style={{
+              color: '#f0d060',
+              fontSize: 14.5,
+              fontFamily: "'Song Myung', 'Gungsuh', '궁서', serif",
+              letterSpacing: '0.01em',
               textShadow: '0 1px 6px rgba(0,0,0,0.5)',
-            }}
-          >
-            오늘의 행운을 돌려보세요!
+              whiteSpace: 'nowrap',
+            }}>
+              오늘의 행운, 지금 바로 확인하세요!
+            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/laurel-branch.png"
+              alt=""
+              style={{
+                height: 22,
+                width: 'auto',
+                filter: 'invert(1) sepia(0.9) saturate(8) hue-rotate(12deg) brightness(0.82)',
+                transform: 'scaleX(-1)',
+              }}
+            />
           </div>
 
           {/* CTA 버튼 */}
@@ -174,11 +215,13 @@ export default function LandingPage() {
             <button
               onClick={() => { playChime(); setTimeout(() => router.push('/roulette'), 100) }}
               style={{
+                position: 'relative',
+                overflow: 'hidden',
                 width: '75%',
                 padding: '17px 20px',
                 background: 'linear-gradient(180deg,#fbe08a,#f2bd3e 48%,#e29a1b)',
                 borderRadius: 56,
-                border: '2.5px solid #f5c832',
+                border: '4px solid #f5c832',
                 boxShadow: '0 0 0 1px #c07812, 0 0 14px 3px rgba(245,200,50,0.5)',
                 cursor: 'pointer',
                 display: 'flex',
@@ -194,9 +237,16 @@ export default function LandingPage() {
                 WebkitTapHighlightColor: 'transparent',
               }}
             >
-              <span>이벤트 참여하기</span>
+              <span style={{
+                position: 'absolute', inset: 0, pointerEvents: 'none',
+                background: 'linear-gradient(105deg,transparent 38%,rgba(255,255,255,.8) 50%,transparent 62%)',
+                backgroundSize: '220% 100%',
+                animation: 'sheen 3.2s ease-in-out infinite',
+              }} />
+              <span style={{ position: 'relative' }}>이벤트 참여하기</span>
               <span
                 style={{
+                  position: 'relative',
                   fontSize: 24,
                   fontWeight: 900,
                   animation: 'arrowNudge 1.4s ease-in-out infinite',
